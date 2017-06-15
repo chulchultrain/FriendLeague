@@ -1,5 +1,6 @@
 import requests
 import league_conf
+#import league_exceptions
 #r = requests.get('https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/44649467?season=8&champion=41&api_key=RGAPI-304f08eb-8a87-4db6-8445-b05bb2aa6a2c')
 #print(r)
 #print(r.text)
@@ -10,6 +11,7 @@ import league_conf
 
 base_url = 'https://na1.api.riotgames.com'
 request_url_map = {}
+
 
 def request_url_map_populate():
     request_url_map = {}
@@ -25,7 +27,7 @@ def add_header_query(hq_map):
     res = '?'
     headers = []
     for x in hq_map:
-        headers.append(x + '=' + hq_map[x])
+        headers.append(x + '=' + str(hq_map[x]))
     header_statement = '&'.join(headers)
     res += header_statement
     return res
@@ -45,13 +47,70 @@ def gen_request(r_type,r_value,header_params=None):
     res += add_header_query(h_p_copy)
     return res
 
+def check_json(json_obj):
+    if 'status' in json_obj:
+        raise RuntimeError("Response JSON improperly formatted")
+
+
+#TODO: What should happen in the event of a 4XX error
+def request(r_type,r_value,header_params=None):
+    req_str = gen_request(r_type,r_value,header_params)
+    print(req_str)
+    response = requests.get(req_str)
+    response_json = response.json()
+    #print(type(response_json))
+    #print(response_json)
+    #for keys in response_json:
+    #    print(keys + ' ' + str(response_json[keys]))
+    try:
+        check_json(response_json)
+    except RuntimeError as e:
+        print(e)
+        response_json = None
+
+    return response_json
+
+
+
+def testing_match_list():
+    s1 = request('match_list','44649467',{'season':'4'})
+    if 'matches' in s1:
+        x = s1['matches']
+        for y in x:
+            if 'season' in y:
+                if y['season'] != 4:
+                    print("Didn't filter season properly")
+                    print(y['season'])
+            else:
+                print("Season not in a match record")
+    else:
+        print("NOT WORKING AS INTENDED")
+
+
+    #if s1 == None:
+    #    print("GOOD AS INTENDED TO FAIL")
+    #else:
+    #    print("FAIL TEST NOT WORKING AS INTENDED")
+
+
+def testing_summoner_name_DNE():
+    s1 = request('summoner','timban')
+
+    if s1 == None:
+        print("GOOD AS INTENDED TO FAIL")
+    else:
+        print("DNE TEST NOT WORKING AS INTENDED")
+
+def testing_summoner_name_pass():
+    s1 = request('summoner','chulchultrain',{'beginTime':'1451628000000','season':'4'})
+    if 'accountId' in s1:
+        print("GOOD PASSED AS INTENDED")
+        print(s1)
+    else:
+        print("EXISTING NAME TEST NOT WORKING AS INTENDED")
 
 def testing():
-    s1 = gen_request('match_list','44649467',{'season':'4'})
-    print(s1)
-    r1 = requests.get(s1)
-    j1 = r1.json()
-    ms1 = j1['matches']
-    first1 = ms1[0]
-    print(first1)
+    testing_summoner_name_DNE()
+    #testing_summoner_name_pass()
+    #testing_match_list()
 testing()
