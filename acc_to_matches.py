@@ -32,7 +32,7 @@ def load_acc_to_match_map():
     finally:
         if fin != None:
             fin.close()
-        return res
+    return res
 
 def save_acc_to_match_map(acc_to_match):
     with open(league_conf.acc_match_file,'wb') as fout:
@@ -56,7 +56,7 @@ def save_acc_refresh_timestamp_map(acc_refresh_timestamp):
     with open(league_conf.acc_refresh_file,'wb') as fout:
         pickle.dump(acc_refresh_timestamp,fout)
 
-def match_data_refresh(id):
+def matches_refresh(id):
     global acc_refresh_timestamp
     if id not in acc_refresh_timestamp:
         last_timestamp = 0
@@ -73,9 +73,9 @@ def match_data_refresh(id):
 #   Just returns the list of match_data
 #   Refreshes everytime and updates the account refresh timestamp to the current timestamp
 #
-def match_data_from_id(id):
+def matches_from_id(id):
     try:
-        new_match_data = match_data_refresh(id)
+        new_match_data = matches_refresh(id)
     except RuntimeError as e:
         print(e)
         new_match_data = None
@@ -103,11 +103,11 @@ def cleanup():
     save_acc_refresh_timestamp_map(acc_refresh_timestamp)
 
 def testing():
-    print(match_data_from_id(44649467))[0]
-    print(match_data_from_id(48258111))[0]
-    print(match_data_from_id(38681917))[0]
-    print(match_data_from_id(32139475))[0]
-    print(match_data_from_id(32421132))[0]
+    print(matches_from_id(44649467))[0]
+    print(matches_from_id(48258111))[0]
+    print(matches_from_id(38681917))[0]
+    print(matches_from_id(32139475))[0]
+    print(matches_from_id(32421132))[0]
 
 setup()
 testing()
