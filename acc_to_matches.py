@@ -87,7 +87,7 @@ def matches_from_id(id):
     else:
         if id not in acc_to_match:
             acc_to_match[id] = []
-        acc_to_match[id] += new_match_data
+        acc_to_match[id] = new_match_data + acc_to_match[id]
         return acc_to_match[id]
 
 def setup():
