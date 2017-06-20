@@ -1,5 +1,6 @@
 import requests
 import league_conf
+import time
 #import league_exceptions
 #r = requests.get('https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/44649467?season=8&champion=41&api_key=RGAPI-304f08eb-8a87-4db6-8445-b05bb2aa6a2c')
 #print(r)
@@ -49,11 +50,12 @@ def gen_request(r_type,r_value,header_params=None):
 
 def check_json(json_obj):
     if 'status' in json_obj:
-        raise RuntimeError("Response JSON improperly formatted")
+        raise RuntimeError(str(json_obj))
 
 
 #TODO: What should happen in the event of a 4XX error
 def request(r_type,r_value,header_params=None):
+    time.sleep(1)
     req_str = gen_request(r_type,r_value,header_params)
     print(req_str)
     response = requests.get(req_str)
@@ -105,12 +107,12 @@ def testing_summoner_name_pass():
     s1 = request('summoner','chulchultrain',{'beginTime':'1451628000000','season':'4'})
     if 'accountId' in s1:
         print("GOOD PASSED AS INTENDED")
-        print(s1)
+
     else:
         print("EXISTING NAME TEST NOT WORKING AS INTENDED")
 
 def testing():
     testing_summoner_name_DNE()
-    #testing_summoner_name_pass()
-    #testing_match_list()
-testing()
+    testing_summoner_name_pass()
+    testing_match_list()
+#testing()

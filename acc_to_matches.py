@@ -69,6 +69,16 @@ def matches_refresh(id):
     acc_refresh_timestamp[id] = cur_timestamp
     return acc_match_data['matches']
 
+def new_matches_from_id(id):
+    try:
+        new_match_data = matches_refresh(id)
+    except RuntimeError as e:
+        print(e)
+        new_match_data = None
+    if new_match_data is not None:
+        acc_to_match[id] = new_match_data + acc_to_match[id]
+    return new_match_data
+
 #
 #   Just returns the list of match_data
 #   Refreshes everytime and updates the account refresh timestamp to the current timestamp
@@ -103,12 +113,7 @@ def cleanup():
     save_acc_refresh_timestamp_map(acc_refresh_timestamp)
 
 def testing():
-    print(matches_from_id(44649467))[0]
-    print(matches_from_id(48258111))[0]
-    print(matches_from_id(38681917))[0]
-    print(matches_from_id(32139475))[0]
-    print(matches_from_id(32421132))[0]
-
+    pass
 setup()
-testing()
+#testing()
 cleanup()

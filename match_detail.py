@@ -37,16 +37,13 @@ def filter_match_data_for_storage(match_data):
     for x in match_data:
         res[x] = match_data[x]
     participant_data = res['participants']
+    keep_fields = ['participantId','teamId']
 
     for p in participant_data:
-        p.pop('timeline')
-        p.pop('stats')
-        p.pop('runes')
-        p.pop('spell2Id')
-        p.pop('masteries')
-        p.pop('highestAchievedSeasonTier')
-        p.pop('spell1Id')
-        p.pop('championId')
+        p_keys = p.keys()
+        for x in p_keys:
+            if x not in keep_fields:
+                p.pop(x)
 
     team_data = match_data['teams']
     keep_fields = ['teamId','win']
@@ -129,7 +126,7 @@ def cleanup():
     save_match_data_map(match_id_to_data)
 
 def testing():
-    r = match_data_from_id(2524795289)
+    r = match_data_from_id(3103315446)
     print(r)
     #print(r['gameMode'])
     #print(r['gameType'])
@@ -140,5 +137,5 @@ def testing():
 
 
 setup()
-testing()
+#testing()
 cleanup()
