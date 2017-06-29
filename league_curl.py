@@ -1,19 +1,18 @@
 import requests
 import league_conf
 import time
-#import league_exceptions
-#r = requests.get('https://na1.api.riotgames.com/lol/match/v3/matchlists/by-account/44649467?season=8&champion=41&api_key=RGAPI-304f08eb-8a87-4db6-8445-b05bb2aa6a2c')
-#print(r)
-#print(r.text)
-#y = r.json()
-#x = y['matches']
-#Wfirst = x[0]
-#print(first)
-
-base_url = 'https://na1.api.riotgames.com'
-request_url_map = {}
 
 
+
+
+# request_url_map_populate function
+# Creates a map for sub URLs for queries that may be needed from the Riot API.
+# Ex: to get the summoner data from Riot API, you have to add the
+# suburl of /lol/summoner/v3/summoners/by-name
+# This function is where we put all the necessary queries to the Riot API we
+# may need.
+#
+#
 def request_url_map_populate():
     request_url_map = {}
     request_url_map['match_list'] = '/lol/match/v3/matchlists/by-account'
@@ -21,8 +20,15 @@ def request_url_map_populate():
     request_url_map['match'] = '/lol/match/v3/matches'
     return request_url_map
 
+base_url = 'https://na1.api.riotgames.com'
 request_url_map = request_url_map_populate()
 
+# add_header_query function
+# Creates the substring to be added to the end of a Riot API request URL for
+# parameters that we need passed to the query, such as API_KEY
+# (our authentication) and beginTime for filtering the actual query results
+# before it reaches us.
+#
 def add_header_query(hq_map):
     #TODO
     res = '?'
