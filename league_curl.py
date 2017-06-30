@@ -34,10 +34,16 @@ def add_header_query(hq_map):
     res = '?'
     headers = []
     for x in hq_map:
-        headers.append(x + '=' + str(hq_map[x]))
+        headers.append(str(x) + '=' + str(hq_map[x]))
     header_statement = '&'.join(headers)
     res += header_statement
     return res
+
+# process_header_map function
+# This function is a preprocessing function to be used on a header before it is
+# passed into the add_header_query function. First, it performs a type check
+# to make sure that the map is indeed a map. Then it adds the API key because
+# you will always need the API key in order to make a request upon Riot API.
 
 def process_header_map(header_params):
     if type(header_params) is not dict:
@@ -47,6 +53,12 @@ def process_header_map(header_params):
     h_p_copy['api_key'] = league_conf.api_key
     return h_p_copy
 
+# gen_request
+# function to create the actual string that represents the request URL
+# for the requested resources indicated by r_type and r_value
+# with the additional parameters in the header_params map
+
+
 def gen_request(r_type,r_value,header_params=None):
     h_p_copy = process_header_map(header_params)
     global request_url_map
@@ -54,12 +66,21 @@ def gen_request(r_type,r_value,header_params=None):
     res += add_header_query(h_p_copy)
     return res
 
+# check_json
+# checks to see if something was actually returned
+# as of 20170626, its not a very thorough check. perhaps should be updated.
+
 def check_json(json_obj):
     if 'status' in json_obj:
         raise RuntimeError(str(json_obj))
 
 
 #TODO: What should happen in the event of a 4XX error
+# request function
+#
+# high level function that actually requests the desired resource indicated by r_type and r_value
+# with the additional parameters in the header params map
+#
 def request(r_type,r_value,header_params=None):
     time.sleep(1)
     req_str = gen_request(r_type,r_value,header_params)
@@ -93,13 +114,6 @@ def testing_match_list():
                 print("Season not in a match record")
     else:
         print("NOT WORKING AS INTENDED")
-
-
-    #if s1 == None:
-    #    print("GOOD AS INTENDED TO FAIL")
-    #else:
-    #    print("FAIL TEST NOT WORKING AS INTENDED")
-
 
 def testing_summoner_name_DNE():
     s1 = request('summoner','timban')
