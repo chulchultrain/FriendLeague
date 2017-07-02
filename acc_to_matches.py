@@ -20,6 +20,7 @@ import league_util
 acc_to_match = {}
 acc_refresh_timestamp = {}
 
+
 def load_acc_to_match_map():
     fin = None
     try:

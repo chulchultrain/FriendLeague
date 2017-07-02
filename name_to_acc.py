@@ -5,6 +5,12 @@ import subprocess
 
 name_to_account_data = {}
 
+
+# load_name_to_account_map function
+# this function will create the map
+# that maps summoner name to their account data
+# by loading all the data we have from the data structure file indicated by
+# our configuration.
 def load_name_to_account_map():
     fin = None
     try:
@@ -19,17 +25,30 @@ def load_name_to_account_map():
             fin.close()
     return res
 
+
+# save_name_to_account_map function
+# this function will save the map
+# to the proper data structure file indicated by our configuration.
 def save_name_to_account_map(name_to_account):
     fout = open(league_conf.name_acc_file,'wb')
     pickle.dump(name_to_account,fout)
     fout.close()
 
 #TODO: What should happen when 4XX error?
+# account_data_from_name_refresh function
+# low level function
+# makes an explicit request to the Riot API for the desired account data
+# given a summoner name 
 def account_data_from_name_refresh(name):
     account_data = league_curl.request('summoner',name)
     if account_data is None:
         raise RuntimeError("Couldn't retrieve data for the summoner name " + name)
     return account_data
+
+# account_data_from_name function
+# gets account data from a name argument
+# high level function
+#
 
 def account_data_from_name(name):
     global name_to_account_data
@@ -44,7 +63,10 @@ def account_data_from_name(name):
         return name_to_account_data[name]
 
 
-
+# account_id_from_name function
+# top level function
+# gets account id from a name argument
+#
 def account_id_from_name(name):
     acc_data = account_data_from_name(name)
     if acc_data is None:
@@ -52,13 +74,21 @@ def account_id_from_name(name):
     else:
         return acc_data['accountId']
 
+# setup function
+# does all necessary tasks to use this entire module correctly
+#
 def setup():
     global name_to_account_data
     name_to_account_data = load_name_to_account_map()
 
+# cleanup function
+# does all necessary tasks at the end of the script to use the module correctly
+# and save results from processing
+# Note: Should really be called at the end of the caller scripts life.
 def cleanup():
     global name_to_account_data
     save_name_to_account_map(name_to_account_data)
+
 
 def testing():
     print('chulchultrain ' + str(account_id_from_name('chulchultrain')))
