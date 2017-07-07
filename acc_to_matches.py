@@ -75,11 +75,7 @@ def save_acc_refresh_timestamp_map(acc_refresh_timestamp):
 # low level function
 # calls the Riot API to get a list of all the new matches that an
 # account has played after the timestamp associated with that account id
-# inside our acc_refresh_timestamp map, and updates that map with the
-# current timestamp
-#TODO: becauase we're not actually updating our acc_to_match map here,
-# we should not actually update the timestamp map here because
-# it could cause desync. Either do both or neither.
+# inside our acc_refresh_timestamp map
 def matches_refresh(id):
     global acc_refresh_timestamp
     if id not in acc_refresh_timestamp:
@@ -90,43 +86,62 @@ def matches_refresh(id):
     if acc_match_data is None:
         raise RuntimeError("Couldn't retrieve match data for the account id " + str(id))
     cur_timestamp = league_util.get_current_timestamp()
-    acc_refresh_timestamp[id] = cur_timestamp
-    return acc_match_data['matches']
 
-#
-#
-#
-#
+    return cur_timestamp,acc_match_data['matches']
+
+# update_match_data function
+# low level function
+# simply updates the acc_to_match map at id key with new_match_data values
+def update_match_data(id,new_match_data):
+    global acc_to_match
+    if id not in acc_to_match:
+        acc_to_match[id] = []
+    acc_to_match[id] = new_match_data + acc_to_match[id]
+
+# update_acc_refresh function
+# low level function
+# simply updates the acc_refresh_timestamp map at id key with new_timestamp value
+def update_acc_refresh(id,new_timestamp):
+    global acc_refresh_timestamp
+    if id not in acc_refresh_timestamp:
+        acc_refresh_timestamp[id] = 0
+    acc_refresh_timestamp[id] = new_timestamp
+
+# new_matches_from_id function
+# high level function
+# loads a list of the new matches acssociated with an account.
+# new being the matches after the timestamp associated with that account id
+# inside the acc_refresh_timestamp map
 def new_matches_from_id(id):
+    global acc_refresh_timestamp
+    global acc_to_match
     try:
-        new_match_data = matches_refresh(id)
+        cur_timestamp,new_match_data = matches_refresh(id)
     except RuntimeError as e:
         print(e)
         new_match_data = None
     if new_match_data is not None:
         acc_to_match[id] = new_match_data + acc_to_match[id]
+        acc_refresh_timestamp[id] = cur_timestamp
     return new_match_data
 
-#
-#   Just returns the list of match_data
-#   Refreshes everytime and updates the account refresh timestamp to the current timestamp
-#
+# matches_from_id function
+# high level function
+# returns the list of matches associated with an account id
 def matches_from_id(id):
+    global acc_to_match
     try:
-        new_match_data = matches_refresh(id)
+        cur_timestamp,new_match_data = matches_refresh(id)
     except RuntimeError as e:
         print(e)
         new_match_data = None
-    if new_match_data is None:
-        if id in acc_to_match:
-            return acc_to_match[id]
-        else:
-            return None
-    else:
-        if id not in acc_to_match:
-            acc_to_match[id] = []
-        acc_to_match[id] = new_match_data + acc_to_match[id]
+    if new_match_data is not None:
+        update_match_data(id,new_match_data)
+        update_acc_refresh(id,cur_timestamp)
+    if id in acc_to_match:
         return acc_to_match[id]
+    else:
+        return None
 
 # setup function
 # does all necessary tasks to use this entire module correctly
@@ -147,7 +162,9 @@ def cleanup():
     save_acc_refresh_timestamp_map(acc_refresh_timestamp)
 
 def testing():
-    pass
+    print(new_matches_from_id(44649467))
+    print(matches_from_id(44649467))
+
 setup()
-#testing()
+testing()
 cleanup()
