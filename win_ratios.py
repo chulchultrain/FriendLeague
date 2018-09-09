@@ -24,7 +24,12 @@ def gen_cmp(x,y):
 
 
 
-#List of friends to a list of summoner names of accounts that they own
+# create_friend_subset_id_map function
+# low level function
+# assigns a subset id to each person in the friend map
+# such that the or operator can be used to aggregate subset ids
+# into a single id which retains all information about the subset ids
+# that make up that id.
 
 def create_friend_subset_id_map(friend_map):
     i = 1
@@ -34,6 +39,11 @@ def create_friend_subset_id_map(friend_map):
         i *= 2
     return res
 
+# process_match
+# high level function
+# given match data and a friend_map
+# it gets the list of friends present within that game and returns whether
+# they won or lost.
 def process_match(match,friend_map):
     #TODO:implement
     friend_list = []
@@ -70,6 +80,9 @@ def process_match(match,friend_map):
     print("NEITHER TEAM EXISTED")
     return None,None
 
+#
+#
+#
 def friend_list_to_subset_id(friend_subset_id_map,friends_in_game):
     #TODO: implement
     res = 0
@@ -78,8 +91,11 @@ def friend_list_to_subset_id(friend_subset_id_map,friends_in_game):
     return res
     pass
 
+# update_win_ratio function
+# high level function
+# given a map from subset id to win ratio,  a subset id and whether they won or not
+# update the map accordingly.
 def update_win_ratio(subset_id_to_win_ratio,subset_id,won):
-    #TODO: implement
     if subset_id not in subset_id_to_win_ratio:
         subset_id_to_win_ratio[subset_id] = [0,0]
     if won:
@@ -87,6 +103,10 @@ def update_win_ratio(subset_id_to_win_ratio,subset_id,won):
     else:
         subset_id_to_win_ratio[subset_id][1] += 1
 
+# subset_id_to_friend_list function
+# low level function
+# given a friend_to_subset_id_map and a subset id, we can find the
+# list of friends that make up that subset id.
 def subset_id_to_friend_list(friend_to_subset_id_map,subset_id):
     #TODO: implement
     res = []
@@ -94,7 +114,10 @@ def subset_id_to_friend_list(friend_to_subset_id_map,subset_id):
         if subset_id & friend_to_subset_id_map[f]:
             res.append(f)
     return res
-
+# translate_summoner_to_acc_id_map function
+# low level function
+# given a friend_map from names to list of summoner names,
+# make a friend_map from names to list of account ids.
 def translate_summoner_to_acc_id_map(friend_map):
     res = {}
     for f in friend_map:
@@ -103,6 +126,15 @@ def translate_summoner_to_acc_id_map(friend_map):
             res[f].append(name_to_acc.account_id_from_name(x))
     return res
 
+
+# win_ratios function
+# top level function
+# Given a friend map, which is a mapping from a friend's actual name to a list
+# of their summoner names,
+# and a match_list, which is a list of match ids which is to be the data to
+# glean insights from,
+# this function will find the win_ratios of each subset of friends from the
+# given match list.
 def win_ratios(friend_map,match_list):
     #Keep a win_ratio of friend_list subsets to a win_ratio(win/loss #'s)
     #
