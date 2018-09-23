@@ -13,15 +13,29 @@ import time
 # may need.
 #
 #
+
+
+
 def request_url_map_populate():
     request_url_map = {}
     request_url_map['match_list'] = '/lol/match/v3/matchlists/by-account'
     request_url_map['summoner'] = '/lol/summoner/v3/summoners/by-name'
     request_url_map['match'] = '/lol/match/v3/matches'
+    request_url_map['champion'] = 'champion.json'
     return request_url_map
+
+def is_static_request(r_type):
+    if r_type is 'champion':
+        return True
+    else:
+        return False
 
 base_url = 'https://na1.api.riotgames.com'
 request_url_map = request_url_map_populate()
+static_data_base_url = 'http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US'
+cj = 'champion.json'
+
+#the way the request url map is set up i can just set it so that champs map to different base url.
 
 # add_header_query function
 # Creates the substring to be added to the end of a Riot API request URL for
@@ -59,10 +73,13 @@ def process_header_map(header_params):
 # with the additional parameters in the header_params map
 
 
-def gen_request(r_type,r_value,header_params=None):
+def gen_request(r_type,r_value=None,header_params=None):
     h_p_copy = process_header_map(header_params)
     global request_url_map
-    res = base_url + request_url_map[r_type] + '/' + str(r_value)
+    if(is_static_request(r_type)):
+        res = static_data_base_url + '/' + request_url_map[r_type]
+    else:
+        res = base_url + request_url_map[r_type] + '/' + str(r_value)
     res += add_header_query(h_p_copy)
     return res
 
@@ -81,8 +98,11 @@ def check_json(json_obj):
 # high level function that actually requests the desired resource indicated by r_type and r_value
 # with the additional parameters in the header params map
 #
-def request(r_type,r_value,header_params=None):
-    time.sleep(1)
+
+
+
+def request(r_type,r_value=None,header_params=None):
+    time.sleep(1.3) #dont put this time.sleep within the functionality
     req_str = gen_request(r_type,r_value,header_params)
     print(req_str)
     response = requests.get(req_str)
@@ -131,8 +151,21 @@ def testing_summoner_name_pass():
     else:
         print("EXISTING NAME TEST NOT WORKING AS INTENDED")
 
+def test_static():
+    res = request('champion')['data']
+    r = res['Aatrox']
+    for x in r:
+        print(x)
+    #for x in res:
+#        print(x)
+#        print(res[x]['id'])
+
 def testing():
     testing_summoner_name_DNE()
     testing_summoner_name_pass()
     testing_match_list()
-#testing()
+    pass
+
+if __name__ == "__main__":
+    testing()
+    test_static()

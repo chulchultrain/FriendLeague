@@ -1,8 +1,9 @@
-import league_curl
+import leagreq.league_curl as league_curl
 import league_conf
 import pickle
 import subprocess
-import league_util
+import utils.league_util as league_util
+import utils.filemap as filemap
 
 #   Will map accounts to the list of match data.
 #
@@ -25,69 +26,66 @@ acc_refresh_timestamp = {}
 # maps account id to match_id list from the data structure file
 # indicated by our configuration
 def load_acc_to_match_map():
-    fin = None
-    try:
-        fin = open(league_conf.acc_match_file,'rb')
-        res = pickle.load(fin)
-        fin.close()
-    except IOError:
-        print("Couldnt load pickled acc match data file")
-        res = {}
-    finally:
-        if fin != None:
-            fin.close()
+    #res = league_util.load_pickled_map(league_conf.acc_match_file)
+    res = filemap.Filemap(league_conf.acc_match_dir)
     return res
 
 # save_acc_to_match_map function
 # this function will save acc_to_match map
 # to the appropriate data structure file indicated by our configuration
 def save_acc_to_match_map(acc_to_match):
-    with open(league_conf.acc_match_file,'wb') as fout:
-        pickle.dump(acc_to_match,fout)
-
+    #league_util.save_pickled_map(league_conf.acc_match_file,acc_to_match)
+    pass
 # load_acc_refresh_timestamp_map function
 # this function will create/load the map that
 # maps account_id to the timestamp that indicates when that account's
 # matchlist data was last refreshed.
 # from the data structure file indicated by our configuration
 def load_acc_refresh_timestamp_map():
-    fin = None
-    try:
-        fin = open(league_conf.acc_refresh_file,'rb')
-        res = pickle.load(fin)
-        fin.close()
-    except IOError:
-        print("Couldnt load pickled acc refresh file")
-        res = {}
-    finally:
-        if fin != None:
-            fin.close()
-        return res
+    #res = league_util.load_pickled_map(league_conf.acc_refresh_file)
+    res = filemap.Filemap(league_conf.acc_timestamp_dir)
+    return res
 
 # save_acc_refresh_timestamp_map function
 # this function will save acc_refresh_timestamp to the
 # appropriate data structure file indicated by our configuration
-def save_acc_refresh_timestamp_map(acc_refresh_timestamp):
-    with open(league_conf.acc_refresh_file,'wb') as fout:
-        pickle.dump(acc_refresh_timestamp,fout)
-
+def save_acc_refresh_timestamp_map(acc_refresh_timestamp_map):
+    #league_util.save_pickled_map(league_conf.acc_refresh_file,acc_refresh_timestamp_map)
+    pass
 # matches_refresh function
 # low level function
 # calls the Riot API to get a list of all the new matches that an
 # account has played after the timestamp associated with that account id
 # inside our acc_refresh_timestamp map
+
+def request_remaining_games(id,beginTime):
+    cur_match = 0
+    cur_season = 11
+    param_map = {'beginTime':beginTime,'beginIndex':cur_match}
+    param_map['seasonId'] = 11
+    acc_match_data = league_curl.request('match_list',id,param_map)
+    matches = []
+    while(acc_match_data is not None and cur_match  < acc_match_data['totalGames']):
+        matches += acc_match_data['matches']
+        cur_match += 100
+        param_map['beginIndex'] = cur_match
+        acc_match_data = league_curl.request('match_list',id,param_map)
+    return matches
+
 def matches_refresh(id):
     global acc_refresh_timestamp
+    res_match_data = []
     if id not in acc_refresh_timestamp:
         last_timestamp = 0
     else:
         last_timestamp = acc_refresh_timestamp[id]
-    acc_match_data = league_curl.request('match_list',id,{'beginTime':last_timestamp})
-    if acc_match_data is None:
+    new_matches = request_remaining_games(id,last_timestamp)
+    total_games = new_matches
+    if total_games is None:
         raise RuntimeError("Couldn't retrieve match data for the account id " + str(id))
     cur_timestamp = league_util.get_current_timestamp()
 
-    return cur_timestamp,acc_match_data['matches']
+    return cur_timestamp,total_games
 
 # update_match_data function
 # low level function
@@ -121,6 +119,8 @@ def new_matches_from_id(id):
         print(e)
         new_match_data = None
     if new_match_data is not None:
+        if(id not in acc_to_match):
+            acc_to_match[id] = []
         acc_to_match[id] = new_match_data + acc_to_match[id]
         acc_refresh_timestamp[id] = cur_timestamp
     return new_match_data
@@ -143,6 +143,41 @@ def matches_from_id(id):
     else:
         return None
 
+def is_solo_match(match):
+    return match['queue'] == 420
+
+def is_flex_match(match):
+    return match['queue'] == 440
+
+#high-level function
+#gets all solo queue matches for a given id
+#by filtering on all the matches for the solo queue type
+def solo_q_matches(id):
+    total_matches = matches_from_id(id)
+    res = []
+    for x in total_matches:
+        if is_solo_match(x):
+            res.append(x)
+    return res
+
+#high-level function
+#gets all solo queue matches for a given id
+#by filtering on all the matches for the flex queue type
+def flex_q_matches(id):
+    total_matches = matches_from_id(id)
+    res = []
+    for x in total_matches:
+        if is_flex_match(x):
+            res.append(x)
+    return res
+#
+#def filter_matches(id,filter_function):#
+    #total_matches = matches_from_id(id)
+    #res = p[
+    #for x in total_matches:
+#        if()
+#    ]
+
 # setup function
 # does all necessary tasks to use this entire module correctly
 def setup():
@@ -162,9 +197,11 @@ def cleanup():
     save_acc_refresh_timestamp_map(acc_refresh_timestamp)
 
 def testing():
-    print(new_matches_from_id(44649467))
-    print(matches_from_id(44649467))
+    #print(new_matches_from_id(44649467))
+    #print(matches_from_id(44649467))
+    print(len(solo_q_matches(38566957)))
 
 setup()
-testing()
+if __name__ == "__main__":
+    testing()
 cleanup()

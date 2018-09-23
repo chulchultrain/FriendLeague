@@ -1,5 +1,6 @@
-import league_curl
-import league_util
+import leagreq.league_curl as league_curl
+import utils.league_util as league_util
+import utils.filemap as filemap
 import league_conf
 import pickle
 
@@ -10,28 +11,15 @@ match_id_to_data = {}
 # maps match_id to match_data from the data structure file
 # indicated by our configuration
 def load_match_data_map():
-    fin = None
-    try:
-        fin = open(league_conf.match_data_file,'rb')
-        res = pickle.load(fin)
-        fin.close()
-    except IOError:
-        print("Couldnt load pickled match data file")
-        res = {}
-    except EOFError:
-        print("Couldnt load pickled match data file")
-        res = {}
-    finally:
-        if fin != None:
-            fin.close()
+    #res = league_util.load_pickled_map(league_conf.match_data_file)
+    res = filemap.Filemap(league_conf.match_data_dir)
     return res
-
 # save_match_data_map function
 # this function will save our match_id to match_data map
 # to the appropriate data structure file indicated by our configuration
 def save_match_data_map(acc_to_match):
-    with open(league_conf.match_data_file,'wb') as fout:
-        pickle.dump(acc_to_match,fout)
+    #league_util.save_pickled_map(league_conf.match_data_file,acc_to_match)
+    pass
 
 # match_data_refresh function
 # low level function
@@ -40,6 +28,7 @@ def save_match_data_map(acc_to_match):
 def match_data_refresh(match_id):
     match_data = league_curl.request('match',match_id)
     if match_id is None:
+        print("COULDNT FIND MATCH " + str(match_id))
         return None
     return match_data
 
@@ -49,6 +38,9 @@ def match_data_refresh(match_id):
 # in order to save disk space
 # and not have problems loading the entire match data map into memory
 # whenever load_match_data_map is called.
+
+#def keep_certain_fields()
+
 def filter_match_data_for_storage(match_data):
     res = {}
     for x in match_data:
@@ -88,7 +80,7 @@ def match_data_from_id(match_id):
     if match_id not in match_id_to_data:
         match_data = match_data_refresh(match_id)
         if match_data != None:
-            match_data = filter_match_data_for_storage(match_data)
+            #match_data = filter_match_data_for_storage(match_data)
             match_id_to_data[match_id] = match_data
         return match_data
     else:
@@ -119,6 +111,26 @@ def map_account_id_to_participant_id(match_id):
         res[x['player']['accountId']] = x['participantId']
     return res
 
+
+def find_part_id(match,id):
+    part_id_li = match['participantIdentities']
+    for p in part_id_li:
+        if p['player']['accountId'] == id:
+            return p['participantId']
+    return None
+
+def find_participant_data(match,part_id):
+    parts = match['participants']
+    for p in parts:
+        if p['participantId'] == part_id:
+            return p
+    return None
+
+def player_data_from_match(match_data,acc_id):
+    part_id = find_part_id(match_data,acc_id)
+    res = find_participant_data(match_data,part_id)
+    return res
+
 # DEPRECATED
 def map_participant_id_to_participant_data(match_id):
     m_d = match_data_from_id(match_id)
@@ -141,6 +153,8 @@ def get_match_win(match_id,account_id):
     res = participant_data_map[acc_to_part[account_id]]['stats']['win']
     return res
 
+
+
 # setup function
 # does all necessary tasks to use this entire module correctly
 def setup():
@@ -156,7 +170,7 @@ def cleanup():
     save_match_data_map(match_id_to_data)
 
 def testing():
-    r = match_data_from_id(3103315446)
+    r = match_data_from_id(2859270267)
     print(r)
     #print(r['gameMode'])
     #print(r['gameType'])
@@ -167,5 +181,6 @@ def testing():
 
 
 setup()
-#testing()
+if __name__ == '__main__':
+    testing()
 cleanup()
