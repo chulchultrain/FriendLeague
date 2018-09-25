@@ -1,5 +1,6 @@
 import leagreq.league_curl as league_curl
 import utils.filemap as filemap
+import utils.league_util as league_util
 import league_conf
 
 # purpose get champion data like name id all that good shit.
@@ -11,9 +12,11 @@ champion_data = {}
 name_to_id = {}
 
 def load_champion_data_map():
-    return filemap.Filemap(league_conf.champion_data_dir)
-
+    #return filemap.Filemap(league_conf.champion_data_dir)
+    return league_util.load_pickled_map(league_conf.champ_detail_file)
 def save_champion_data_map():
+    global champion_data
+    league_util.save_pickled_map(league_conf.champ_detail_file,champion_data)
     pass
 
 def load_champion_name_id_map():

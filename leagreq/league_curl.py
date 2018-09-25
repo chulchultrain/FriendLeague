@@ -99,23 +99,33 @@ def check_json(json_obj):
 # with the additional parameters in the header params map
 #
 
-
+def execute_request(req_str):
+    counter = 0
+    print(req_str)
+    while counter < 2:
+        #print("Before sleep")
+        time.sleep(1.4)
+        #print("After sleep")
+        response = requests.get(req_str)
+        response_json = response.json()
+        try:
+            check_json(response_json)
+            counter = 2
+        except RuntimeError as e:
+            print(e)
+            response_json = None
+            #print("Failed one round " + str(counter))
+        counter += 1
+    return response_json
 
 def request(r_type,r_value=None,header_params=None):
-    time.sleep(1.3) #dont put this time.sleep within the functionality
     req_str = gen_request(r_type,r_value,header_params)
-    print(req_str)
-    response = requests.get(req_str)
-    response_json = response.json()
+    response_json = execute_request(req_str)
     #print(type(response_json))
     #print(response_json)
     #for keys in response_json:
     #    print(keys + ' ' + str(response_json[keys]))
-    try:
-        check_json(response_json)
-    except RuntimeError as e:
-        print(e)
-        response_json = None
+
 
     return response_json
 
