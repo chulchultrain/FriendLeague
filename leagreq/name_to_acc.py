@@ -65,6 +65,14 @@ def account_id_from_name(name):
     else:
         return acc_data['accountId']
 
+def get_acc_id_for_group(name_li):
+    acc_id_li = []
+    for n in name_li:
+        acc_id = account_id_from_name(n)
+        if acc_id is not None:
+            acc_id_li.append(acc_id)
+    return acc_id_li
+
 # setup function
 # does all necessary tasks to use this entire module correctly
 #
@@ -82,7 +90,7 @@ def cleanup():
 
 
 def testing():
-    li = ['chulchultrain','chulminyang','crysteenah','timbangu','starcalls coffee','ilovememundo','sbaneling','1000kpingftw','bigheartjohnny','inting griefer']
+    li = ['chulchultrain','chulminyang','crysteenah','timbangu','starcalls coffee','ilovememundo','sbaneling','1000pingftw','bigheartjohnny','inting griefer']
     li += ['thegoldenpenis']
     for x in li:
         print(x + ' ' + str(account_id_from_name(x)))

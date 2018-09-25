@@ -4,6 +4,7 @@ import pickle
 import subprocess
 import utils.league_util as league_util
 import utils.filemap as filemap
+import sets
 
 #   Will map accounts to the list of match data.
 #
@@ -177,6 +178,20 @@ def flex_q_matches(id):
     #for x in total_matches:
 #        if()
 #    ]
+def get_flex_match_list_for_group(acc_id_li):
+    init_filter = []
+    id_set = sets.Set()
+    for a in acc_id_li:
+        m_li = flex_q_matches(a)
+        for m in m_li:
+            if m['gameId'] not in id_set:
+                if m['gameId'] == 3103315446:
+                    print("HERP WAS HERE")
+                    print(a)
+                init_filter.append(m)
+                id_set.add(m['gameId'])
+    res = []
+    return init_filter
 
 # setup function
 # does all necessary tasks to use this entire module correctly
@@ -195,6 +210,10 @@ def cleanup():
     global acc_refresh_timestamp
     save_acc_to_match_map(acc_to_match)
     save_acc_refresh_timestamp_map(acc_refresh_timestamp)
+
+#get matches with filter.
+#get matches for list with filter
+#with flag to refresh 
 
 def testing():
     #print(new_matches_from_id(44649467))
