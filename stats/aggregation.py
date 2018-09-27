@@ -56,18 +56,7 @@ def aggregate_statistics(match_set,id):
     return res
 
 
-def team_cond(acc_id_li,team_cond_predicate):
-    #get id. get part id. get team id. check if that team took first drag
 
-    def inner(m_d):
-        for a in acc_id_li:
-            part_id = match_detail.find_part_id(m_d,a) #can optimize for inner loop repetition later
-            if part_id is not None:
-                break
-        #part_id = match_detail.find_part_id(m_d,acc_id)
-        t_d = match_detail.team_data(m_d,part_id)
-        return team_cond_predicate(t_d)
-    return inner
 
 
 def cond_to_successrate(match_set,cond_predicate,success_predicate):
@@ -96,6 +85,19 @@ def cond_to_successrate(match_set,cond_predicate,success_predicate):
 
 #shit needs to be in name_to_acc
 
+def cond_to_cond(match_list,cond_pred,success_pred):
+    success,failure = 0,0
+    for m in match_list:
+        if cond_pred(m):
+            if success_pred(m):
+                success += 1
+            else:
+                failure += 1
+    total = success + failure
+    print("TOTAL: " + str(total))
+    print("SUCCESS: " + str(success))
+    print("FAILURE: " + str(failure))
+    return success * 1.0 / total * 1.0
 
 
 def group_cond_to_cond(name_li,cond_pred,success_pred):
@@ -146,5 +148,16 @@ name_li += ['timbangu']
 name_li += ['starcalls coffee','ilovememundo','chulchultrain']
 name_li += ['bigheartjohnny','1000pingftw','inting griefer']
 name_li += ['thegoldenpenis']
-#print(group_cond_to_cond(name_li,first_drag,team_cond_win))
-print(group_cond_to_cond(name_li,teampreds.first_tower,teampreds.team_cond_win))
+acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
+ft_pred = teampreds.team_cond(acc_id_li,teampreds.first_tower)
+win_pred = teampreds.team_cond(acc_id_li,teampreds.team_cond_win)
+m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
+print(cond_to_cond(m_l,ft_pred,win_pred))
+
+time_li = []
+i = 1
+#while i < 5:
+#   time_li.append(gamepreds.game_len_int_cond(60 * 10 * i, 60 * 10 * ( i + 1)))
+#   i += 1
+#for tc in time_li:
+#    print(group_cond_to_cond(name_li,tc,teampreds.team_cond_win))

@@ -39,46 +39,7 @@ def match_data_refresh(match_id):
         return None
     return match_data
 
-# filter_match_data_for_storage function
-# low level function
-# takes just the desired properties of match data given the full match data.
-# in order to save disk space
-# and not have problems loading the entire match data map into memory
-# whenever load_match_data_map is called.
 
-#def keep_certain_fields()
-
-def filter_match_data_for_storage(match_data):
-    res = {}
-    for x in match_data:
-        res[x] = match_data[x]
-    participant_data = res['participants']
-    keep_fields = ['participantId','teamId']
-
-    for p in participant_data:
-        p_keys = p.keys()
-        for x in p_keys:
-            if x not in keep_fields:
-                p.pop(x)
-
-    team_data = match_data['teams']
-    keep_fields = ['teamId','win']
-    for t in team_data:
-        t_keys = t.keys()
-        for x in t_keys:
-            if x not in keep_fields:
-                t.pop(x)
-
-    keep_fields = ['accountId','summonerName']
-    p_i_d = res['participantIdentities']
-    for p in p_i_d:
-        player = p['player']
-        p_keys = player.keys()
-        for x in p_keys:
-            if x not in keep_fields:
-                player.pop(x)
-    return res
-    pass #TODO
 
 # match_data_from_id function
 # high level function
@@ -118,7 +79,7 @@ def map_account_id_to_participant_id(match_id):
         res[x['player']['accountId']] = x['participantId']
     return res
 
-
+#match detailed obj, id = int
 def find_part_id(match,id):
     part_id_li = match['participantIdentities']
     for p in part_id_li:

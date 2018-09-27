@@ -1,28 +1,61 @@
+import leagreq.match_detail as match_detail
+import leagreq.match_timeline as match_timeline
+import leagreq.champ_detail as champ_detail
+# generates a player condition function that operates on a match object
+# inputs: id - account id of the player in question
+#         player_cond_predicate - the predicate we wish to test
+#                               - the predicate should take the participant_data as an input
+# output: a player condition function that takes a match object as input and returns a boolean based on whether the condition is true or not
+def player_cond(id,player_cond_predicate):
+    def inner(m_id):
+        m_d = match_detail.match_data_from_id(m_id)
+        if m_d is None:
+            return False
+        part_data = match_detail.player_data_from_match(m_d,id)
+        #print(part_data)
+        return player_cond_predicate(part_data)
+    return inner
 
+
+# a player predicate generator that takes in a champion name as input and outputs a predicate function that operates on player data
+# tests whether a certain champ is played
+# input: champ_name - the name of the champion to be tested
+# output: a predicate function that tests whether the player was playing that champ
 def plays_champ(champ_name):
     id = champ_detail.id_from_champion(champ_name)
-    def inner(match_general):
-        return match_general['champion'] == id
+    def inner(p_d):
+        return p_d['championId'] == id
     return inner
 
-
-def is_win(name):
-    acc_id = name_to_acc.account_id_from_name(name)
-    def inner(m_d):
-        part_id = match_detail.find_part_id(m_d,acc_id)
-        t_d = match_detail.team_data(m_d,part_id)
-        return t_d['win'] == 'Win'
-    return inner
-
-def calculate_lane(match_general):
-    lane = match_general['lane']
+# accessory function for the is_lane function. calculates what lane is being played
+def calculate_lane(p_d):
+    lane = p_d['timeline']['lane']
     if lane == 'MID':
         lane = 'MIDDLE'
     if lane == 'BOT':
         lane = 'BOTTOM'
     return lane
 
+# a player predicate generator that takes in a lane as input and outputs a predicate function that operates on player data
+# tests whether a certain lane is played
+# input: lane - the lane to be tested
+# output: a predicate function that tests whether the player was playing that lane
 def is_lane(lane):
-    def inner(match_general):
-        return calculate_lane(match_general) == lane
+    def inner(p_d):
+        return calculate_lane(p_d) == lane
     return inner
+
+def testing():
+    is_top = is_lane('TOP')
+    i_am_top = player_cond(38566957,is_top)
+    assert(i_am_top(2858500164))
+    is_mid = is_lane('MIDDLE')
+    i_am_mid = player_cond(38566957,is_mid)
+    assert(i_am_mid(2858500164) == False)
+    is_camille = plays_champ('Camille')
+    i_am_camille = player_cond(38566957,is_camille)
+    assert(i_am_camille(2858500164))
+    christina_is_camille = player_cond(48258111,is_camille)
+    assert(christina_is_camille(2858500164) == False)
+if __name__ == "__main__":
+    testing()

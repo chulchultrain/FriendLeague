@@ -129,8 +129,13 @@ def new_matches_from_id(id):
 # matches_from_id function
 # high level function
 # returns the list of matches associated with an account id
-def matches_from_id(id):
+def match_gen_from_id(id,refresh_flag=False):
     global acc_to_match
+    if refresh_flag == False:
+        if id in acc_to_match:
+            return acc_to_match[id]
+        else:
+            return None
     try:
         cur_timestamp,new_match_data = matches_refresh(id)
     except RuntimeError as e:
@@ -144,6 +149,9 @@ def matches_from_id(id):
     else:
         return None
 
+def matches_from_id(id,refresh_flag=False):
+    return list(map(lambda x : x['gameId'],match_gen_from_id(id,refresh_flag)))
+
 def is_solo_match(match):
     return match['queue'] == 420
 
@@ -153,23 +161,23 @@ def is_flex_match(match):
 #high-level function
 #gets all solo queue matches for a given id
 #by filtering on all the matches for the solo queue type
-def solo_q_matches(id):
-    total_matches = matches_from_id(id)
+def solo_q_matches(id, refresh_flag = False):
+    total_matches = match_gen_from_id(id,refresh_flag)
     res = []
     for x in total_matches:
         if is_solo_match(x):
-            res.append(x)
+            res.append(x['gameId'])
     return res
 
 #high-level function
 #gets all solo queue matches for a given id
 #by filtering on all the matches for the flex queue type
-def flex_q_matches(id):
-    total_matches = matches_from_id(id)
+def flex_q_matches(id,refresh_flag = False):
+    total_matches = match_gen_from_id(id,refresh_flag)
     res = []
     for x in total_matches:
         if is_flex_match(x):
-            res.append(x)
+            res.append(x['gameId'])
     return res
 #
 #def filter_matches(id,filter_function):#
@@ -178,18 +186,15 @@ def flex_q_matches(id):
     #for x in total_matches:
 #        if()
 #    ]
-def get_flex_match_list_for_group(acc_id_li):
+def get_flex_match_list_for_group(acc_id_li,refresh_flag = False):
     init_filter = []
     id_set = sets.Set()
     for a in acc_id_li:
-        m_li = flex_q_matches(a)
+        m_li = flex_q_matches(a,refresh_flag)
         for m in m_li:
-            if m['gameId'] not in id_set:
-                if m['gameId'] == 3103315446:
-                    print("HERP WAS HERE")
-                    print(a)
+            if m not in id_set:
                 init_filter.append(m)
-                id_set.add(m['gameId'])
+                id_set.add(m)
     res = []
     return init_filter
 
@@ -213,12 +218,12 @@ def cleanup():
 
 #get matches with filter.
 #get matches for list with filter
-#with flag to refresh 
+#with flag to refresh
 
 def testing():
     #print(new_matches_from_id(44649467))
     #print(matches_from_id(44649467))
-    print(len(solo_q_matches(38566957)))
+    print(solo_q_matches(38566957))
 
 setup()
 if __name__ == "__main__":

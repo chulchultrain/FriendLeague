@@ -21,6 +21,7 @@ def request_url_map_populate():
     request_url_map['match_list'] = '/lol/match/v3/matchlists/by-account'
     request_url_map['summoner'] = '/lol/summoner/v3/summoners/by-name'
     request_url_map['match'] = '/lol/match/v3/matches'
+    request_url_map['matchTimeline'] = '/lol/match/v3/timelines/by-match'
     request_url_map['champion'] = 'champion.json'
     return request_url_map
 
@@ -145,6 +146,10 @@ def testing_match_list():
     else:
         print("NOT WORKING AS INTENDED")
 
+def test_timeline():
+    s1 = request('matchTimeline','2858485810')
+    print(s1)
+
 def testing_summoner_name_DNE():
     s1 = request('summoner','timban')
 
@@ -174,6 +179,7 @@ def testing():
     testing_summoner_name_DNE()
     testing_summoner_name_pass()
     testing_match_list()
+    test_timeline()
     pass
 
 if __name__ == "__main__":

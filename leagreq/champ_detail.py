@@ -11,36 +11,58 @@ import league_conf
 champion_data = {}
 name_to_id = {}
 
+
+# load_champion_data_map function
+# loads the champion data map
+# that maps the champion_id to champion data
+# output : a map-like data structure
 def load_champion_data_map():
     #return filemap.Filemap(league_conf.champion_data_dir)
     return league_util.load_pickled_map(league_conf.champ_detail_file)
+
+
 def save_champion_data_map():
     global champion_data
     league_util.save_pickled_map(league_conf.champ_detail_file,champion_data)
     pass
 
+# load_champion_name_id_map Function
+# loads the name id map
+# that maps the champion name to champion id
+# output : a map-like data structure
 def load_champion_name_id_map():
     global champion_data
     res = {}
     for id in champion_data:
         name = champion_data[id]['name']
-        res[name] = int(id)
+        res[name] = id
+        #print(id)
+        #print(type(id))
     return res
 
 def save_champion_name_id_map():
     pass
 
+# data_refresh function
+# refreshs the data from riot API
+# for champions
 def data_refresh():
     global champion_data
     global name_to_id
     data = league_curl.request('champion')['data']
     res = {}
     for x in data:
-        key = data[x]['key']
+        #print(x)
+        key = int(data[x]['key'])
+        #print(key)
         r = data[x]
         champion_data[key] = r
     name_to_id = load_champion_name_id_map()
 
+# id_from_champion function
+# Top Level Function
+# input : champion_name : string
+# output : champ_id : int/long
 def id_from_champion(name):
     global champion_data
     global name_to_id
@@ -49,6 +71,10 @@ def id_from_champion(name):
     else:
         return None
 
+# data_from_id function
+# Top Level Function
+# input : champion_id : int
+# output : champion data structure from Riot API
 def data_from_id(id):
     global champion_data
     if id in champion_data:
@@ -56,6 +82,8 @@ def data_from_id(id):
     else:
         return None
 
+# setup function
+# does all necessary tasks to use this entire module correctly
 def setup():
     global champion_data
     global name_to_id
@@ -65,11 +93,12 @@ def setup():
 def cleanup():
     save_champion_data_map()
     save_champion_name_id_map()
+
+#testing function
 def testing():
-    print(id_from_champion('Lux'))
-    print(data_from_id(id_from_champion('Ahri')))
-    for name in name_to_id:
-        print(name + ' ' + str(name_to_id[name]))
+    assert(id_from_champion('Lux') == 99)
+    assert(id_from_champion('Ahri') == 103)
+    assert(data_from_id(99)['name'] == 'Lux')
 setup()
 cleanup()
 if __name__ == '__main__':
