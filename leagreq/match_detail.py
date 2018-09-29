@@ -12,9 +12,6 @@ match_id_to_data = {}
 # this function will create/load the map that
 # maps match_id to match_data from the data structure file
 # indicated by our configuration
-
-
-
 def load_match_data_map():
     #res = league_util.load_pickled_map(league_conf.match_data_file)
     #res = filemap.Filemap(league_conf.match_data_dir)

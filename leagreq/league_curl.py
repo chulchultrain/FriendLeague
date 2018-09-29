@@ -11,10 +11,6 @@ import time
 # suburl of /lol/summoner/v3/summoners/by-name
 # This function is where we put all the necessary queries to the Riot API we
 # may need.
-#
-#
-
-
 
 def request_url_map_populate():
     request_url_map = {}
@@ -25,12 +21,17 @@ def request_url_map_populate():
     request_url_map['champion'] = 'champion.json'
     return request_url_map
 
+
+# is_static_request function
+# determines whether the request type calls riots static api
+# so far only champion data is static
 def is_static_request(r_type):
     if r_type is 'champion':
         return True
     else:
         return False
 
+#bunch of globals for use
 base_url = 'https://na1.api.riotgames.com'
 request_url_map = request_url_map_populate()
 static_data_base_url = 'http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US'
@@ -104,9 +105,7 @@ def execute_request(req_str):
     counter = 0
     print(req_str)
     while counter < 2:
-        #print("Before sleep")
         time.sleep(1.4)
-        #print("After sleep")
         response = requests.get(req_str)
         response_json = response.json()
         try:
@@ -115,17 +114,19 @@ def execute_request(req_str):
         except RuntimeError as e:
             print(e)
             response_json = None
-            #print("Failed one round " + str(counter))
         counter += 1
     return response_json
 
+
+# request
+# Top Level function
+# requests data from riot api
+# r_type : type of request : string
+# r_value : value of request : string
+# header_params : extra header params in the query : dict
 def request(r_type,r_value=None,header_params=None):
     req_str = gen_request(r_type,r_value,header_params)
     response_json = execute_request(req_str)
-    #print(type(response_json))
-    #print(response_json)
-    #for keys in response_json:
-    #    print(keys + ' ' + str(response_json[keys]))
 
 
     return response_json
@@ -134,46 +135,28 @@ def request(r_type,r_value=None,header_params=None):
 
 def testing_match_list():
     s1 = request('match_list','44649467',{'season':'4'})
-    if 'matches' in s1:
-        x = s1['matches']
-        for y in x:
-            if 'season' in y:
-                if y['season'] != 4:
-                    print("Didn't filter season properly")
-                    print(y['season'])
-            else:
-                print("Season not in a match record")
-    else:
-        print("NOT WORKING AS INTENDED")
+    assert('matches' in s1)
+    x = s1['matches']
+    for y in x:
+        assert('season' in y)
+        assert(y['season'] == 4)
+
 
 def test_timeline():
     s1 = request('matchTimeline','2858485810')
-    print(s1)
+    assert('frameInterval' in s1)
 
 def testing_summoner_name_DNE():
     s1 = request('summoner','timban')
-
-    if s1 == None:
-        print("GOOD AS INTENDED TO FAIL")
-    else:
-        print("DNE TEST NOT WORKING AS INTENDED")
+    assert(s1 == None)
 
 def testing_summoner_name_pass():
     s1 = request('summoner','chulchultrain',{'beginTime':'1451628000000','season':'4'})
-    if 'accountId' in s1:
-        print("GOOD PASSED AS INTENDED")
-
-    else:
-        print("EXISTING NAME TEST NOT WORKING AS INTENDED")
+    assert( 'accountId' in s1)
 
 def test_static():
     res = request('champion')['data']
-    r = res['Aatrox']
-    for x in r:
-        print(x)
-    #for x in res:
-#        print(x)
-#        print(res[x]['id'])
+    assert('Aatrox' in res)
 
 def testing():
     testing_summoner_name_DNE()

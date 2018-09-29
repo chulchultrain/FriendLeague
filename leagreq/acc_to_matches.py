@@ -11,14 +11,6 @@ import sets
 #   Instead of refreshing the entire list everytime, which will take up network bandwidith.
 #   We keep track of when the last time the matchdata was refreshed for each account we have on hand.
 #
-#
-#
-#
-#
-#
-#
-#
-
 acc_to_match = {}
 acc_refresh_timestamp = {}
 
@@ -37,6 +29,7 @@ def load_acc_to_match_map():
 def save_acc_to_match_map(acc_to_match):
     #league_util.save_pickled_map(league_conf.acc_match_file,acc_to_match)
     pass
+
 # load_acc_refresh_timestamp_map function
 # this function will create/load the map that
 # maps account_id to the timestamp that indicates when that account's
@@ -53,12 +46,11 @@ def load_acc_refresh_timestamp_map():
 def save_acc_refresh_timestamp_map(acc_refresh_timestamp_map):
     #league_util.save_pickled_map(league_conf.acc_refresh_file,acc_refresh_timestamp_map)
     pass
-# matches_refresh function
-# low level function
+
+# request_remaining_games function
 # calls the Riot API to get a list of all the new matches that an
 # account has played after the timestamp associated with that account id
 # inside our acc_refresh_timestamp map
-
 def request_remaining_games(id,beginTime):
     cur_match = 0
     cur_season = 11
@@ -73,6 +65,10 @@ def request_remaining_games(id,beginTime):
         acc_match_data = league_curl.request('match_list',id,param_map)
     return matches
 
+# matches_refresh function
+# low level function
+# updates both the match_list for an id and the timestamp for when the last
+# set of games was pulled
 def matches_refresh(id):
     global acc_refresh_timestamp
     res_match_data = []
@@ -106,29 +102,10 @@ def update_acc_refresh(id,new_timestamp):
         acc_refresh_timestamp[id] = 0
     acc_refresh_timestamp[id] = new_timestamp
 
-# new_matches_from_id function
-# high level function
-# loads a list of the new matches acssociated with an account.
-# new being the matches after the timestamp associated with that account id
-# inside the acc_refresh_timestamp map
-def new_matches_from_id(id):
-    global acc_refresh_timestamp
-    global acc_to_match
-    try:
-        cur_timestamp,new_match_data = matches_refresh(id)
-    except RuntimeError as e:
-        print(e)
-        new_match_data = None
-    if new_match_data is not None:
-        if(id not in acc_to_match):
-            acc_to_match[id] = []
-        acc_to_match[id] = new_match_data + acc_to_match[id]
-        acc_refresh_timestamp[id] = cur_timestamp
-    return new_match_data
 
-# matches_from_id function
+# match_gen_from_id function
 # high level function
-# returns the list of matches associated with an account id
+# returns the list of match general data structures associated with an account id
 def match_gen_from_id(id,refresh_flag=False):
     global acc_to_match
     if refresh_flag == False:
@@ -149,18 +126,26 @@ def match_gen_from_id(id,refresh_flag=False):
     else:
         return None
 
+# matches_from_id function
+# Top level function
+# returns the list of match ids associated with an account id
+# takes a refresh_flag to indicate whether we want to call the Riot API to get more matches
 def matches_from_id(id,refresh_flag=False):
     return list(map(lambda x : x['gameId'],match_gen_from_id(id,refresh_flag)))
 
+# is a solo q match predicate : takes match general data strcture
 def is_solo_match(match):
     return match['queue'] == 420
 
+# is a flex q match predicate : takes match general data structure
 def is_flex_match(match):
     return match['queue'] == 440
 
-#high-level function
-#gets all solo queue matches for a given id
-#by filtering on all the matches for the solo queue type
+# solo_q_matches function
+# Top Level Function
+# gets all solo queue matches for a given id
+# by filtering on all the matches for the solo queue type
+# and takes a refresh flag to indicate whether to call Riot API for more matches
 def solo_q_matches(id, refresh_flag = False):
     total_matches = match_gen_from_id(id,refresh_flag)
     res = []
@@ -168,10 +153,11 @@ def solo_q_matches(id, refresh_flag = False):
         if is_solo_match(x):
             res.append(x['gameId'])
     return res
-
-#high-level function
-#gets all solo queue matches for a given id
-#by filtering on all the matches for the flex queue type
+# flex_q_matches function
+# Top Level Function
+# gets all flex queue matches for a given id
+# by filtering on all the matches for the flex queue type
+# and takes a refresh flag to indicate whether to call Riot API for more matches
 def flex_q_matches(id,refresh_flag = False):
     total_matches = match_gen_from_id(id,refresh_flag)
     res = []
@@ -179,13 +165,16 @@ def flex_q_matches(id,refresh_flag = False):
         if is_flex_match(x):
             res.append(x['gameId'])
     return res
-#
-#def filter_matches(id,filter_function):#
-    #total_matches = matches_from_id(id)
-    #res = p[
-    #for x in total_matches:
-#        if()
-#    ]
+
+#TODO: A SOLO Q COUNTERPART TO get_flex_match_list_for_group
+
+# get_flex_match_list_for_group function
+# Top Level Function
+# gets all flex queue matches that had at least one person from a list of people
+# in a single list
+# takes a refresh flag to indicate whether to call Riot API for more matches
+# acc_id_li : List[Int/Long]
+# refresh_flag : Boolean
 def get_flex_match_list_for_group(acc_id_li,refresh_flag = False):
     init_filter = []
     id_set = sets.Set()
@@ -224,7 +213,7 @@ def testing():
     #print(new_matches_from_id(44649467))
     #print(matches_from_id(44649467))
     print(solo_q_matches(38566957))
-
+    print("NO ASSERTS FOR THSI MODULE")
 setup()
 if __name__ == "__main__":
     testing()

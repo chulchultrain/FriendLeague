@@ -12,14 +12,14 @@ import preds.playerpreds as playerpreds
 
 
 #initially, we'll do cs score, avg gold, avg kills, deaths, assists see these things arent too useful due to some games being longer than others
-#
-
-
-
-
 #implement custom aggregation. can choose w/e stats you want, and aggregate in different ways if want.
 
-
+# custom aggregation
+# what i want is to be able to choose w/e stats i want
+# how can i choose the custom stats because its a map, should i keep a map
+# of things to be added?
+#
+#
 def add_to_aggregate(aggregate,m):
     for key in m:
         if key not in aggregate:
@@ -57,38 +57,24 @@ def aggregate_statistics(match_set,id):
 
 
 
-
-
-def cond_to_successrate(match_set,cond_predicate,success_predicate):
-    win,loss = 0,0
-    for m in match_set:
-        mid = m['gameId']
-        md = match_detail.match_data_from_id(mid)
-        if cond_predicate(md):
-            if success_predicate(md):
-                win += 1
-            else:
-                loss += 1
-    total = win + loss
-    print(str(win) + ' ' + str(loss))
-    return win * 1.0 / total * 1.0
-
-
-
 #calc_champ_lane_stats('crysteenah','Lux','MIDDLE')
 #calc_champ_lane_stats('chulminyang','Gangplank','TOP')
 
 
-#get list of players, get flex q matches,
-#
-#
-
-#shit needs to be in name_to_acc
-
-def cond_to_cond(match_list,cond_pred,success_pred):
+# cond_to_cond function
+# Top-level function
+# for a list of matches, find the proportion of matches
+# that satisfy success_pred given condition_pred
+# input : match_list : list of matches to run the condition predicates
+#       : condition_pred : a predicate function that tests for a condition on a match
+#       : success_pred : a predicate function that tests for a condition on a match
+# output : proportion of games that satisfy the success_predicate
+# given that the condition predicate was true
+def cond_to_cond(match_list,condition_pred,success_pred):
     success,failure = 0,0
     for m in match_list:
-        if cond_pred(m):
+        #print(m)
+        if condition_pred(m):
             if success_pred(m):
                 success += 1
             else:
@@ -100,9 +86,9 @@ def cond_to_cond(match_list,cond_pred,success_pred):
     return success * 1.0 / total * 1.0
 
 
+
+
 def group_cond_to_cond(name_li,cond_pred,success_pred):
-
-
     acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
     m_li = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
     success,failure = 0,0
@@ -149,15 +135,21 @@ name_li += ['starcalls coffee','ilovememundo','chulchultrain']
 name_li += ['bigheartjohnny','1000pingftw','inting griefer']
 name_li += ['thegoldenpenis']
 acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
-ft_pred = teampreds.team_cond(acc_id_li,teampreds.first_tower)
+#ft_pred = teampreds.team_cond(acc_id_li,teampreds.first_tower)
 win_pred = teampreds.team_cond(acc_id_li,teampreds.team_cond_win)
 m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
-print(cond_to_cond(m_l,ft_pred,win_pred))
+#print(cond_to_cond(m_l,ft_pred,win_pred))
+#TODO: w/r by time length
 
-time_li = []
 i = 1
-#while i < 5:
-#   time_li.append(gamepreds.game_len_int_cond(60 * 10 * i, 60 * 10 * ( i + 1)))
-#   i += 1
-#for tc in time_li:
-#    print(group_cond_to_cond(name_li,tc,teampreds.team_cond_win))
+while i < 5:
+    print("winrate for " + str(i))
+    match_len = gamepreds.game_len_int_cond(i * 600, (i + 1) * 600)
+    gm = gamepreds.game_cond(match_len)
+    print(cond_to_cond(m_l,gm,win_pred))
+    i += 1
+#for name in name_li:
+    #print("WIN RATE FOR FIRSTBLOOD on " + name)
+    #acc_id = name_to_acc.account_id_from_name(name)
+    #got_first_blood = playerpreds.player_cond(acc_id,playerpreds.got_first_blood())
+    #print(cond_to_cond(m_l,got_first_blood,win_pred))

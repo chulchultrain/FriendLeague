@@ -1,18 +1,20 @@
 import leagreq.match_detail as match_detail
 import leagreq.match_timeline as match_timeline
 import leagreq.champ_detail as champ_detail
-# generates a player condition function that operates on a match object
+
+# generates a player condition function that operates on a match id
 # inputs: id - account id of the player in question
 #         player_cond_predicate - the predicate we wish to test
 #                               - the predicate should take the participant_data as an input
-# output: a player condition function that takes a match object as input and returns a boolean based on whether the condition is true or not
+# output: a player condition function that takes a match id as input and returns a boolean based on whether the condition is true or not
 def player_cond(id,player_cond_predicate):
     def inner(m_id):
         m_d = match_detail.match_data_from_id(m_id)
         if m_d is None:
             return False
         part_data = match_detail.player_data_from_match(m_d,id)
-        #print(part_data)
+        if part_data is None:
+            return False
         return player_cond_predicate(part_data)
     return inner
 
@@ -43,6 +45,16 @@ def calculate_lane(p_d):
 def is_lane(lane):
     def inner(p_d):
         return calculate_lane(p_d) == lane
+    return inner
+
+def got_first_blood():
+    def inner(p_d):
+        #if p_d is None:
+        #    print("PARTICIPANT DATA IS NONE")
+        if 'firstBloodKill' in p_d['stats']:
+            return p_d['stats']['firstBloodKill']
+        else:
+            return False
     return inner
 
 def testing():
