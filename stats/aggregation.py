@@ -6,6 +6,7 @@ import sets
 import preds.teampreds as teampreds
 import preds.gamepreds as gamepreds
 import preds.playerpreds as playerpreds
+import decimal
 #
 #given a set of matches for an id, calculate performance statistics for that player on that set of games
 #i want cs diff against other laner.
@@ -20,42 +21,6 @@ import preds.playerpreds as playerpreds
 # of things to be added?
 #
 #
-def add_to_aggregate(aggregate,m):
-    for key in m:
-        if key not in aggregate:
-            aggregate[key] = 0
-        aggregate[key] += m[key]
-
-def keep_data(player_data):
-    stats = player_data['stats']
-    res = {}
-    res['cs'] = stats['totalMinionsKilled'] + stats['neutralMinionsKilled']
-    res['gold'] = stats['goldEarned']
-    res['kills'] = stats['kills']
-    res['deaths'] = stats['deaths']
-    res['assists'] = stats['assists']
-    return res
-def include_in_aggregate(aggregate,player_data):
-    include_data = keep_data(player_data)
-    add_to_aggregate(aggregate,include_data)
-
-def calculate_aggregates(m,sample_size):
-    res = {}
-    for key in m:
-        res[key] = m[key] * 1.0 / sample_size
-    return res
-
-def aggregate_statistics(match_set,id):
-    res = {}
-    for m in match_set:
-        mid = m['gameId']
-        md = match_detail.match_data_from_id(mid)
-        pd = match_detail.player_data_from_match(md,id)
-        include_in_aggregate(res,pd)
-    res = calculate_aggregates(res,len(match_set))
-    return res
-
-
 
 #calc_champ_lane_stats('crysteenah','Lux','MIDDLE')
 #calc_champ_lane_stats('chulminyang','Gangplank','TOP')
@@ -88,47 +53,44 @@ def cond_to_cond(match_list,condition_pred,success_pred):
 
 
 
-def group_cond_to_cond(name_li,cond_pred,success_pred):
-    acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
-    m_li = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
-    success,failure = 0,0
-    team_init_cond = team_cond(acc_id_li,cond_pred)
-    team_success_cond = team_cond(acc_id_li,success_pred)
-    for m in m_li:
-        md = match_detail.match_data_from_id(m['gameId'])
-        if md is None:
-            continue
-        if gamepreds.is_remake(md) is False and team_init_cond(md):
-            if team_success_cond(md):
-                success += 1
-            else:
-                failure += 1
-    total = success + failure
-    print("Total games for this run:")
-    print(total)
-    print(success)
-    print(failure)
-    return success * 1.0 / total * 1.0
 
+#statistics for configurations
 
-def calc_champ_lane_stats(summoner_name,champion_name,lane):
-    acc_id = name_to_acc.account_id_from_name(summoner_name)
-    total_match_list = acc_to_matches.matches_from_id(acc_id)
-    filtered_match_list = []
-    champ_pred = plays_champ(champion_name)
-    lane_pred = is_lane(lane)
-    for m in total_match_list:
-        if champ_pred(m) and lane_pred(m):
-            filtered_match_list.append(m)
-    print("FINISHED FILTERING MATCHES")
-    res = aggregate_statistics(filtered_match_list,acc_id)
-    #print(len(filtered_match_list))
-    print("Over " + str(len(filtered_match_list)) + " games, " + summoner_name + "'s average performance on " + champion_name + ":")
-    for m in res:
-        print(m + ': ' + str(res[m]))
+def stat_aggregate(m_l,get_required_data_func,aggregation_function):
+    res = None
+    for m in m_l:
+        m_d = match_detail.match_data_from_id(m)
+        aggregated_stats = get_required_data_func(m_d)
+        res = aggregation_function(res,aggregated_stats)
     return res
 
-
+def winrate_vs_all_champs(m_l,acc_id_li):
+    res = {}
+    team_win_cond = teampreds.team_cond(acc_id_li,teampreds.team_cond_win)
+    for m in m_l:
+        enemy_champs = []
+        m_d = match_detail.match_data_from_id(m)
+        if m_d is None:
+            continue
+        enemy_t_id = match_detail.find_other_team_from_id_li(m_d,acc_id_li)
+        #if enemy_t_id is None:
+        #    continue
+        #print(enemy_t_id)
+        for p in m_d['participants']:
+            if p['teamId'] == enemy_t_id:
+                enemy_champs.append(p['championId'])
+        #print(m)
+        #print(enemy_champs)
+        for c in enemy_champs:
+            if c not in res:
+                res[c] = [0,0]
+        if team_win_cond(m):
+            for c in enemy_champs:
+                 res[c][0] += 1
+        else:
+            for c in enemy_champs:
+                res[c][1] += 1
+    return res
 name_li = ['crysteenah','chulminyang','sbaneling']
 name_li += ['timbangu']
 name_li += ['starcalls coffee','ilovememundo','chulchultrain']
@@ -138,16 +100,34 @@ acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
 #ft_pred = teampreds.team_cond(acc_id_li,teampreds.first_tower)
 win_pred = teampreds.team_cond(acc_id_li,teampreds.team_cond_win)
 m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
+print(len(m_l))
 #print(cond_to_cond(m_l,ft_pred,win_pred))
 #TODO: w/r by time length
 
+
+
+res = winrate_vs_all_champs(m_l,acc_id_li)
+print(len(res))
+res_li = []
+for c in res:
+    #print(c)
+    c_n = champ_detail.data_from_id(c)['name']
+    win = res[c][0]
+    loss = res[c][1]
+    total = win + loss
+    res_li.append([c_n,win,loss,round(win * 1.0 / total,3)])
+
+sorted_li = sorted(res_li, key = (lambda x : x[3]))
+for x in sorted_li:
+    print(x[0] + ' ' + str(x[1]) + ' ' + str(x[2]) + ' ' + str(x[3]))
+
 i = 1
-while i < 5:
-    print("winrate for " + str(i))
-    match_len = gamepreds.game_len_int_cond(i * 600, (i + 1) * 600)
-    gm = gamepreds.game_cond(match_len)
-    print(cond_to_cond(m_l,gm,win_pred))
-    i += 1
+#while i < 5:
+#    print("winrate for " + str(i))
+#    match_len = gamepreds.game_len_int_cond(i * 600, (i + 1) * 600)
+#    gm = gamepreds.game_cond(match_len)
+#    print(cond_to_cond(m_l,gm,win_pred))
+#    i += 1
 #for name in name_li:
     #print("WIN RATE FOR FIRSTBLOOD on " + name)
     #acc_id = name_to_acc.account_id_from_name(name)

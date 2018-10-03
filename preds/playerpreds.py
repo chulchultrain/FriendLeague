@@ -12,11 +12,21 @@ def player_cond(id,player_cond_predicate):
         m_d = match_detail.match_data_from_id(m_id)
         if m_d is None:
             return False
-        part_data = match_detail.player_data_from_match(m_d,id)
+        part_data = match_detail.id_to_data(m_d,id,id_type='account_id',result_type='part_data')
         if part_data is None:
             return False
         return player_cond_predicate(part_data)
     return inner
+
+#def player_list_cond(id_li,player_cond_predicate):
+#    def inner(m_id):
+#        m_d = match_detail.match_d`ata_from_id(m_id)
+#        if m_d is None:
+#            return False
+#        res = True
+#        for id in id_li:
+#            part_data = match_detail.player_data_from_match(m_d,id)
+#            if part_data is None:
 
 
 # a player predicate generator that takes in a champion name as input and outputs a predicate function that operates on player data

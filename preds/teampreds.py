@@ -17,17 +17,36 @@ def team_cond(acc_id_li,team_cond_predicate):
         if m_d is None:
             return False
         for a in acc_id_li:
-            part_id = match_detail.find_part_id(m_d,a) #can optimize for inner loop repetition later
-            if part_id is not None:
+            t_d = match_detail.id_to_data(m_d,a,id_type='account_id',result_type='team_data')
+            if t_d is not None:
                 break
-        #part_id = match_detail.find_part_id(m_d,acc_id)
-        t_d = match_detail.team_data(m_d,part_id)
+
         return team_cond_predicate(t_d)
     return inner
 
 #predicates below should be self-explanatory
 
+#def iterate_part_team_cond(acc_id_li,player_cond_predicate,how_to_aggregate):
+#    def inner(m):
+#        find_part_id =
+
+def other_team_cond(teamid):
+    pass
+def iterate_part_team_cond(teamid,player_cond_predicate):
+    def inner(m):
+        m_d = match_detail.match_data_from_id(m)
+        if m_d is None:
+            return False
+        part_list = m_d['participants']
+        res = True
+        for p in part_list:
+            if p['teamId'] == teamid:
+                res = res and player_cond_predicate(p)
+        return res
+    return inner
+    # for each participant in the team, find wehter its true for all of them
 # predicate for whether the team won
+
 def team_cond_win(td):
     return td['win'] == 'Win'
 

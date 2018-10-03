@@ -34,7 +34,7 @@ def is_static_request(r_type):
 #bunch of globals for use
 base_url = 'https://na1.api.riotgames.com'
 request_url_map = request_url_map_populate()
-static_data_base_url = 'http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US'
+static_data_base_url = 'http://ddragon.leagueoflegends.com/cdn/8.19.1/data/en_US'
 cj = 'champion.json'
 
 #the way the request url map is set up i can just set it so that champs map to different base url.
