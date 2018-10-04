@@ -36,10 +36,10 @@ def account_data_from_name_refresh(name):
     return account_data
 
 # account_data_from_name function
+# Top Level function
 # gets account data from a name argument
-# high level function
-#
-
+# input : name : summoner name : string
+# output : account data : summonerDTO type from Riot API
 def account_data_from_name(name):
     global name_to_account_data
     if name not in name_to_account_data:
@@ -55,9 +55,10 @@ def account_data_from_name(name):
 
 
 # account_id_from_name function
-# top level function
+# Top Level Function
 # gets account id from a name argument
-#
+# input : name = summoner name : string
+# output : account_id : int/long
 def account_id_from_name(name):
     acc_data = account_data_from_name(name)
     if acc_data is None:
@@ -65,9 +66,21 @@ def account_id_from_name(name):
     else:
         return acc_data['accountId']
 
+# get_acc_id_for_group function
+# Top Level Function
+# gets list of account ids from a list of names
+# input : name_li = list of summoner names = List[string]
+# output : account_id : List[int/long]
+def get_acc_id_for_group(name_li):
+    acc_id_li = []
+    for n in name_li:
+        acc_id = account_id_from_name(n)
+        if acc_id is not None:
+            acc_id_li.append(acc_id)
+    return acc_id_li
+
 # setup function
 # does all necessary tasks to use this entire module correctly
-#
 def setup():
     global name_to_account_data
     name_to_account_data = load_name_to_account_map()
@@ -75,17 +88,26 @@ def setup():
 # cleanup function
 # does all necessary tasks at the end of the script to use the module correctly
 # and save results from processing
-# Note: Should really be called at the end of the caller scripts life.
 def cleanup():
     global name_to_account_data
     save_name_to_account_map(name_to_account_data)
 
-
+#testing function to make sure its all good
 def testing():
-    li = ['chulchultrain','chulminyang','crysteenah','timbangu','starcalls coffee','ilovememundo','sbaneling','1000kpingftw','bigheartjohnny','inting griefer']
-    li += ['thegoldenpenis']
-    for x in li:
-        print(x + ' ' + str(account_id_from_name(x)))
+    a_k = {}
+    a_k['chulchultrain'] = 44649467
+    a_k['chulminyang'] = 38566957
+    a_k['crysteenah'] = 48258111
+    a_k['timbangu'] = 32139475
+    a_k['starcalls coffee'] = 47916976
+    a_k['ilovememundo'] = 33226921
+    a_k['sbaneling'] = 230550059
+    a_k['1000pingftw'] = 41057569
+    a_k['bigheartjohnny'] = 41912122
+    a_k['inting griefer'] = 201989747
+    a_k['thegoldenpenis'] = 36255338
+    for x in a_k:
+        assert(a_k[x] == account_id_from_name(x))
 
 setup()
 if __name__ == "__main__":

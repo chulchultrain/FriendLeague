@@ -13,6 +13,8 @@ import pickle
 #load_pickled_map function
 #loads a pickled map from the passed file name
 
+
+
 def load_pickled_map(file):
     res = {}
     try:
