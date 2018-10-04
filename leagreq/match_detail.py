@@ -142,6 +142,38 @@ def setup():
     global match_id_to_data
     match_id_to_data = load_match_data_map()
 
+def calc_cs(pd):
+    stats = pd['stats']
+    return stats['totalMinionsKilled'] + stats['neutralMinionsKilled']
+
+def map_pid_role(m_d):
+    p_li = m_d['participants']
+    res = {}
+    tid_to_bot_li = {}
+    for p in p_li:
+        pid = p['participantId']
+        tid = p['teamId']
+        rough_lane = p['timeline']['lane']
+        if rough_lane == u'MID':
+            rough_lane = u'MIDDLE'
+        if rough_lane == u'BOT':
+            rough_lane = u'BOTTOM'
+        if rough_lane == u'BOTTOM':
+            if tid not in tid_to_bot_li:
+                tid_to_bot_li[tid] = []
+            tid_to_bot_li[tid].append([pid,p])
+        res[pid] = rough_lane
+    for t in tid_to_bot_li:
+        entry = tid_to_bot_li[t]
+        if len(entry) == 2:
+            one = entry[0]
+            two = entry[1]
+            if calc_cs(one[1]) > calc_cs(two[1]): #one is AD other is support.
+                res[two[0]] = u'SUPPORT'
+            else:
+                res[one[0]] = u'SUPPORT'
+    return res
+
 def inter_map(m_d):
     res = {}
     pi_li = m_d['participantIdentities']
@@ -150,6 +182,9 @@ def inter_map(m_d):
     team_id_part_ids = {}
     team_id_part_data = {}
     team_id_team_data = {}
+    p_id_role = {}
+    p_id_role = map_pid_role(m_d)
+    #TODO: ROLE MAPPING TODO TODO
     for p in p_li:
         tid = p['teamId']
         pid = p['participantId']
@@ -170,7 +205,7 @@ def inter_map(m_d):
                 t_id = p['teamId']
                 pd = p
                 break
-        res[(acc_id,p_id,t_id)] = {'pd':pd,'td':team_id_team_data[t_id],'pot':team_id_part_ids[t_id],'tpd':team_id_part_data[t_id]}
+        res[(acc_id,p_id,t_id,p_id_role[p_id])] = {'pd':pd,'td':team_id_team_data[t_id],'pot':team_id_part_ids[t_id],'tpd':team_id_part_data[t_id]}
     return res
 #id_type : "account id, participant id, team id "
 #result_type : "account id, participant id, team id, participant data, team data, participants on team data"
@@ -182,6 +217,8 @@ def convert_type_to_index(input_type):
         res = 1
     elif input_type == 'team_id':
         res = 2
+    elif input_type == 'role':
+        res = 3
     elif input_type == 'part_data':
         res = 'pd'
     elif input_type == 'team_data':
@@ -193,14 +230,14 @@ def convert_type_to_index(input_type):
     else:
         res = None
     return res
-def id_to_data(m_d,id,id_type="account_id",result_type="participant_id"):
-    in_map = inter_map(m_d)
+def id_to_data(in_map,id,id_type="account_id",result_type="participant_id"):
     id_index = convert_type_to_index(id_type)
     #print(id_index)
     result_index = convert_type_to_index(result_type)
     #print(result_index)
     res = None
     for p in in_map:
+        #print(p)
         if p[id_index] == id:
             if type(result_index) is int:
                 res = p[result_index]
@@ -209,7 +246,16 @@ def id_to_data(m_d,id,id_type="account_id",result_type="participant_id"):
             break
     return res
 
-
+def enemy_team_id(in_map,team_id):
+    t_id_ind = convert_type_to_index('team_id')
+    if type(t_id_ind) is not int:
+        print("Problem with connvert_type_to_ind")
+        return None
+    for p in in_map:
+        if type(t_id_ind) is int:
+            if p[t_id_ind] is not team_id:
+                return p[t_id_ind]
+    return None
 # participant id
 # participant data
 # team id from id li
@@ -238,12 +284,12 @@ def testing():
     m = inter_map(r)
     for x in m:
         print(x)
-    mm = id_to_data(r,239590109,id_type='account_id',result_type='participant_id')
-    rr = id_to_data(r,7,id_type='participant_id',result_type='account_id')
-    ww = id_to_data(r,7,id_type='participant_id',result_type='team_id')
-    ee = id_to_data(r,7,id_type='participant_id',result_type='parts_on_team')
-    dd = id_to_data(r,200,id_type='team_id',result_type='team_data')
-    aa = id_to_data(r,7,id_type='participant_id',result_type='team_data')
+    mm = id_to_data(m,239590109,id_type='account_id',result_type='participant_id')
+    rr = id_to_data(m,7,id_type='participant_id',result_type='account_id')
+    ww = id_to_data(m,7,id_type='participant_id',result_type='team_id')
+    ee = id_to_data(m,7,id_type='participant_id',result_type='parts_on_team')
+    dd = id_to_data(m,200,id_type='team_id',result_type='team_data')
+    aa = id_to_data(m,7,id_type='participant_id',result_type='team_data')
     print(mm)
     print(rr)
     print(ww)
