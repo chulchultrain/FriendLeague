@@ -1,0 +1,13 @@
+api_key=None
+acc_match_file=None
+acc_refresh_file=None
+name_acc_file=None
+match_data_file=None
+champ_detail_file=None
+name_acc_dir=None
+acc_match_dir=None
+acc_timestamp_dir=None
+match_data_dir=None
+champion_data_dir=None
+match_data_db=None
+match_timeline_db=None

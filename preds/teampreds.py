@@ -16,13 +16,17 @@ def team_cond(acc_id_li,team_cond_predicate):
         m_d = match_detail.match_data_from_id(m)
         if m_d is None:
             return False
+        in_map = match_detail.inter_map(m_d)
         for a in acc_id_li:
-            t_d = match_detail.id_to_data(m_d,a,id_type='account_id',result_type='team_data')
+            t_d = match_detail.id_to_data(in_map,a,id_type='account_id',result_type='team_data')
             if t_d is not None:
                 break
 
         return team_cond_predicate(t_d)
     return inner
+
+#def iterate_team_players_cond(acc_id_li,team_cond_predicate):
+
 
 #predicates below should be self-explanatory
 

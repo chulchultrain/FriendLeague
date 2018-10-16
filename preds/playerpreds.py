@@ -12,7 +12,8 @@ def player_cond(id,player_cond_predicate):
         m_d = match_detail.match_data_from_id(m_id)
         if m_d is None:
             return False
-        part_data = match_detail.id_to_data(m_d,id,id_type='account_id',result_type='part_data')
+        in_map = match_detail.inter_map(m_d)
+        part_data = match_detail.id_to_data(in_map,id,id_type='account_id',result_type='part_data')
         if part_data is None:
             return False
         return player_cond_predicate(part_data)
