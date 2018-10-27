@@ -9,20 +9,24 @@ import leagreq.match_detail as match_detail
 #                              : the predicate function should take teamdata as an input
 # output : a team condition function that takes a match id as input and returns a boolean
 # based on whether the condition is true or not
-def team_cond(acc_id_li,team_cond_predicate):
+def team_cond(team_cond_predicate):
     #get id. get part id. get team id. check if that team took first drag
+    def intermediate(acc_id_li):
+        def inner(m):
+            m_d = match_detail.match_data_from_id(m)
+            if m_d is None:
+                return False
+            in_map = match_detail.inter_map(m_d)
+            for a in acc_id_li:
+                t_d = match_detail.id_to_data(in_map,a,id_type='account_id',result_type='team_data')
+                if t_d is not None:
+                    break
 
-    def inner(m):
-        m_d = match_detail.match_data_from_id(m)
-        if m_d is None:
-            return False
-        for a in acc_id_li:
-            t_d = match_detail.id_to_data(m_d,a,id_type='account_id',result_type='team_data')
-            if t_d is not None:
-                break
+            return team_cond_predicate(t_d)
+        return inner
+    return intermediate
+#def iterate_team_players_cond(acc_id_li,team_cond_predicate):
 
-        return team_cond_predicate(t_d)
-    return inner
 
 #predicates below should be self-explanatory
 
@@ -70,6 +74,14 @@ def first_drag_and_tower(td):
 def first_drag_or_tower(td):
     return first_drag(td) or first_tower(td)
 
+# predicate for first baron
+def first_baron(td):
+    return td['firstBaron']
+
+# predicate for first rift herald
+def first_rift(td):
+    return td['firstRiftHerald']
+
 # predicate for first drag first tower and win game
 def first_drag_tower_and_win(td):
     return first_drag_and_tower(td) and team_cond_win(td)
@@ -88,9 +100,9 @@ def miss_first_drag_and_tower(td):
 
 def testing():
     acc_id_li = [38566957,48258111,32139475,33226921]
-    gfd = team_cond(acc_id_li,first_drag)
-    gfb = team_cond(acc_id_li,first_blood)
-    won = team_cond(acc_id_li,team_cond_win)
+    gfd = team_cond(first_drag)(acc_id_li)
+    gfb = team_cond(first_blood)(acc_id_li)
+    won = team_cond(team_cond_win)(acc_id_li)
     assert(gfd(2875873602))
     assert(gfb(2875873602))
     assert(not won(2875873602) )

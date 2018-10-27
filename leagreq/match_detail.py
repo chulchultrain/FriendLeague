@@ -146,6 +146,12 @@ def calc_cs(pd):
     stats = pd['stats']
     return stats['totalMinionsKilled'] + stats['neutralMinionsKilled']
 
+def transform_lane(rough_lane):
+    if rough_lane == u'MID':
+        rough_lane = u'MIDDLE'
+    if rough_lane == u'BOT':
+        rough_lane = u'BOTTOM'
+    return rough_lane
 def map_pid_role(m_d):
     p_li = m_d['participants']
     res = {}
@@ -154,10 +160,7 @@ def map_pid_role(m_d):
         pid = p['participantId']
         tid = p['teamId']
         rough_lane = p['timeline']['lane']
-        if rough_lane == u'MID':
-            rough_lane = u'MIDDLE'
-        if rough_lane == u'BOT':
-            rough_lane = u'BOTTOM'
+        rough_lane = transform_lane(rough_lane)
         if rough_lane == u'BOTTOM':
             if tid not in tid_to_bot_li:
                 tid_to_bot_li[tid] = []
@@ -174,6 +177,18 @@ def map_pid_role(m_d):
                 res[one[0]] = u'SUPPORT'
     return res
 
+def calc_role(p_d):
+    timeline = p_d['timeline']
+    rough_lane = timeline['lane']
+    role = timeline['role']
+    if rough_lane == u'MID':
+        rough_lane = u'MIDDLE'
+    if rough_lane == u'BOT':
+        rough_lane = u'BOTTOM'
+    if role == 'DUO_SUPPORT':
+        rough_lane = 'SUPPORT'
+    return rough_lane
+
 def inter_map(m_d):
     res = {}
     pi_li = m_d['participantIdentities']
@@ -183,7 +198,6 @@ def inter_map(m_d):
     team_id_part_data = {}
     team_id_team_data = {}
     p_id_role = {}
-    p_id_role = map_pid_role(m_d)
     #TODO: ROLE MAPPING TODO TODO
     for p in p_li:
         tid = p['teamId']
@@ -205,7 +219,8 @@ def inter_map(m_d):
                 t_id = p['teamId']
                 pd = p
                 break
-        res[(acc_id,p_id,t_id,p_id_role[p_id])] = {'pd':pd,'td':team_id_team_data[t_id],'pot':team_id_part_ids[t_id],'tpd':team_id_part_data[t_id]}
+        role = calc_role(pd)
+        res[(acc_id,p_id,t_id,calc_role(pd))] = {'pd':pd,'td':team_id_team_data[t_id],'pot':team_id_part_ids[t_id],'tpd':team_id_part_data[t_id]}
     return res
 #id_type : "account id, participant id, team id "
 #result_type : "account id, participant id, team id, participant data, team data, participants on team data"
@@ -290,12 +305,14 @@ def testing():
     ee = id_to_data(m,7,id_type='participant_id',result_type='parts_on_team')
     dd = id_to_data(m,200,id_type='team_id',result_type='team_data')
     aa = id_to_data(m,7,id_type='participant_id',result_type='team_data')
+    asdf = id_to_data(m,7,id_type='participant_id',result_type='role')
     print(mm)
     print(rr)
     print(ww)
     print(ee)
     print(aa)
     print(dd)
+    print(asdf)
 
     #print(r['gameMode'])
     #print(r['gameType'])

@@ -153,6 +153,19 @@ def solo_q_matches(id, refresh_flag = False):
         if is_solo_match(x):
             res.append(x['gameId'])
     return res
+
+
+# solo_q_match_list function
+# Top Level Function
+# gets list of solo q match metadata for an id
+def solo_q_match_list(id,refresh_flag=False):
+    total_matches = match_gen_from_id(id,refresh_flag)
+    res = []
+    for x in total_matches:
+        if is_solo_match(x):
+            res.append(x)
+    return res
+
 # flex_q_matches function
 # Top Level Function
 # gets all flex queue matches for a given id

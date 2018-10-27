@@ -12,7 +12,8 @@ def player_cond(id,player_cond_predicate):
         m_d = match_detail.match_data_from_id(m_id)
         if m_d is None:
             return False
-        part_data = match_detail.id_to_data(m_d,id,id_type='account_id',result_type='part_data')
+        in_map = match_detail.inter_map(m_d)
+        part_data = match_detail.id_to_data(in_map,id,id_type='account_id',result_type='part_data')
         if part_data is None:
             return False
         return player_cond_predicate(part_data)
@@ -40,13 +41,23 @@ def plays_champ(champ_name):
     return inner
 
 # accessory function for the is_lane function. calculates what lane is being played
-def calculate_lane(p_d):
-    lane = p_d['timeline']['lane']
-    if lane == 'MID':
-        lane = 'MIDDLE'
-    if lane == 'BOT':
-        lane = 'BOTTOM'
-    return lane
+
+def is_role(role):
+    def inner(p_d):
+        return match_detail.calc_role(p_d) == role
+    return inner
+    #TODO:
+
+def champ_role(champ_name=None,role=None):
+    id = champ_detail.id_from_champion(champ_name)
+    def inner(p_d):
+        res = True
+        if champ_name is not None:
+            res = res and plays_champ(champ_name)(p_d)
+        if role is not None:
+            res = res and is_role(role)(p_d)
+        return res
+    return inner
 
 # a player predicate generator that takes in a lane as input and outputs a predicate function that operates on player data
 # tests whether a certain lane is played
@@ -56,6 +67,8 @@ def is_lane(lane):
     def inner(p_d):
         return calculate_lane(p_d) == lane
     return inner
+
+
 
 def got_first_blood():
     def inner(p_d):
