@@ -60,7 +60,8 @@ def single_player_stats_wanted(part_data):
     res['deaths'] = p_d['deaths']
     res['damage'] = p_d['totalDamageDealtToChampions']
     res['assists'] = p_d['assists']
-
+    p_t = part_data['timeline']
+    print(p_t['lane'],p_t['role'],part_data['championId'])
     return res
 
 
@@ -329,7 +330,7 @@ if __name__ == "__main__":
     name_li += ['thegoldenpenis']
     acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
     #ft_pred = teampreds.team_cond(acc_id_li,teampreds.first_tower)
-    win_pred = teampreds.team_cond(acc_id_li,teampreds.team_cond_win)
+    win_pred = teampreds.team_cond(teampreds.team_cond_win)(acc_id_li)
     m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
     print(len(m_l))
     #print(cond_to_cond(m_l,ft_pred,win_pred))

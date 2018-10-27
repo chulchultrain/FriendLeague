@@ -2,9 +2,7 @@ import leagreq.name_to_acc as name_to_acc
 import leagreq.acc_to_matches as acc_to_matches
 import stats.aggregation as aggregation
 import preds.pred_translate as pred_translate
-import preds.playerpreds as playerpreds
 import sys
-import argparse
 # Module serves as an entry point for a user to find common stats needed like
 # a mapping of getting first tower to winrate
 # or an average of performance statistics of a player over the players solo q or flex games
@@ -21,35 +19,33 @@ import argparse
 #
 #
 
-def solo_cond_arg_parse(sys_args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("name",help = "the name of the summoner")
-    parser.add_argument('-c',"--champion",help = "the name of the champion")
-    parser.add_argument('-l',"--lane",help = "the role. Valid: TOP MIDDLE BOTTOM SUPPORT JUNGLE")
-    args = parser.parse_args()
-    name = args.name
-    champion = args.champion
-    role = args.lane
-    print(name,champion,role)
-    return name,champion,role
-
-#TODO: get a way to only work on matches that satisy champ and lane criteria
+def flex_cond_arg_parse(sys_args):
+    try:
+        cond_1 = sys_args[1]
+        cond_2 = sys_args[2]
+        name_li = sys_args[3:]
+    except Exception as e:
+        print("Usage: <cond_1> <cond_2> <name_1> <name_2> ... <name_n>")
+    return cond_1,cond_2,name_li
 def single_player(name,champion_name=None,lane=None):
     acc_id = name_to_acc.account_id_from_name(name)
     m_l = acc_to_matches.solo_q_matches(acc_id)
-    filtered_m_l = []
-    cr_pred = playerpreds.champ_role(champ_name=champion_name,role=lane)
-    champ_role_pred = playerpreds.player_cond(acc_id,cr_pred)
-    for m in m_l:
-        if champ_role_pred(m):
-            filtered_m_l.append(m)
-    print(len(filtered_m_l))
+    print(len(m_l))
     data_func = aggregation.single_player_get_data(acc_id)
-    res_map = aggregation.stat_aggregate(filtered_m_l,data_func)
+    res_map = aggregation.stat_aggregate(m_l,data_func)
     for x in res_map:
         print(str(x) + ":")
         print(res_map[x])
 
+def flex_cond_to_cond(name_li,cond_1_str,cond_2_str):
+    acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
+    cond_1 = pred_translate.translate(cond_1_str)(acc_id_li)
+    cond_2 = pred_translate.translate(cond_2_str)(acc_id_li)
+    if cond_1 is None or cond_2 is None:
+        print("Either cond_1 or cond_2 are invalid conditions")
+        print("Check the valid condition strings")
+    m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
+    aggregation.cond_to_cond(m_l,cond_1,cond_2)
 if __name__ == "__main__":
-    name,champion,role = solo_cond_arg_parse(sys.argv)
-    single_player(name,champion_name=champion,lane=role)
+    cond_1,cond_2,name_li = flex_cond_arg_parse(sys.argv)
+    flex_cond_to_cond(name_li,cond_1,cond_2)
