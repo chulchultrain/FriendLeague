@@ -4,7 +4,6 @@ import pickle
 import subprocess
 import utils.league_util as league_util
 import utils.filemap as filemap
-import sets
 
 #   Will map accounts to the list of match data.
 #
@@ -112,7 +111,7 @@ def match_gen_from_id(id,refresh_flag=False):
         if id in acc_to_match:
             return acc_to_match[id]
         else:
-            return None
+            return []
     try:
         cur_timestamp,new_match_data = matches_refresh(id)
     except RuntimeError as e:
@@ -124,7 +123,7 @@ def match_gen_from_id(id,refresh_flag=False):
     if id in acc_to_match:
         return acc_to_match[id]
     else:
-        return None
+        return []
 
 # matches_from_id function
 # Top level function
@@ -190,7 +189,7 @@ def flex_q_matches(id,refresh_flag = False):
 # refresh_flag : Boolean
 def get_flex_match_list_for_group(acc_id_li,refresh_flag = False):
     init_filter = []
-    id_set = sets.Set()
+    id_set = set()
     for a in acc_id_li:
         m_li = flex_q_matches(a,refresh_flag)
         for m in m_li:

@@ -3,11 +3,10 @@ import leagreq.acc_to_matches as acc_to_matches
 import stats.aggregation as aggregation
 import preds.pred_translate as pred_translate
 import sys
-# Module serves as an entry point for a user to find common stats needed like
-# a mapping of getting first tower to winrate
-# or an average of performance statistics of a player over the players solo q or flex games
-#
-#
+import argparse
+# Module serves as an entry point for finding the rate of which
+# a condition is true given another condition within the flex games
+# of a list of players
 #
 
 # TODO: Need a model
@@ -15,18 +14,14 @@ import sys
 # whose stats we wish to calculate, and a set of predicates we wish to test
 # maybe we dont need to keep the set of predicates, but definitely at least the match_lits and the account_ids
 
-# TODO: Need to
-#
-#
 
 def flex_cond_arg_parse(sys_args):
-    try:
-        cond_1 = sys_args[1]
-        cond_2 = sys_args[2]
-        name_li = sys_args[3:]
-    except Exception as e:
-        print("Usage: <cond_1> <cond_2> <name_1> <name_2> ... <name_n>")
-    return cond_1,cond_2,name_li
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n','--names',nargs='+',help='the names of summoners',required=True)
+    parser.add_argument('--cond1',required=True)
+    parser.add_argument('--cond2',required=True)
+    args = parser.parse_args()
+    return args.cond1,args.cond2,args.names
 def single_player(name,champion_name=None,lane=None):
     acc_id = name_to_acc.account_id_from_name(name)
     m_l = acc_to_matches.solo_q_matches(acc_id)
@@ -36,7 +31,14 @@ def single_player(name,champion_name=None,lane=None):
     for x in res_map:
         print(str(x) + ":")
         print(res_map[x])
-
+# flex_cond_to_cond function - high-level function
+# this function will calculate the rate at which the 2nd condition is true
+# given the first condition over the set of flex games played by the players
+# in the name list
+# input : name_li : list[string]
+#         cond_1_str : string
+#         cond_2_str : string
+# valid cond_strings are defined in the preds.pred_translate module
 def flex_cond_to_cond(name_li,cond_1_str,cond_2_str):
     acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
     cond_1 = pred_translate.translate(cond_1_str)(acc_id_li)

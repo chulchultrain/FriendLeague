@@ -65,7 +65,7 @@ def champ_role(champ_name=None,role=None):
 # output: a predicate function that tests whether the player was playing that lane
 def is_lane(lane):
     def inner(p_d):
-        return calculate_lane(p_d) == lane
+        return match_detail.calc_role(p_d) == lane
     return inner
 
 

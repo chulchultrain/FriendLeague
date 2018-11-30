@@ -16,8 +16,10 @@ def game_cond(game_cond_predicate):
     return inner
 
 # if the game is a remake
-def is_remake(m_d):
-    return m_d['gameDuration'] < 300
+def is_remake():
+    def inner(m_d):
+        return m_d['gameDuration'] < 300
+    return inner
 
 # whether the game's duration falls within the time interval
 def game_len_int_cond(m1,m2):

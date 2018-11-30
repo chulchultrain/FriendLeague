@@ -18,7 +18,7 @@ class SqliteMap:
         if oneval is None:
             raise KeyError("missing key " + str(key))
         else:
-            res = pickle.loads(str(oneval[0]))
+            res = pickle.loads(oneval[0])
             return res
     def __delitem__(self,key):
         self._cursor.execute('delete from data_table where key=?',(key,))
