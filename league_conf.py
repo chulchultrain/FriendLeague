@@ -1,4 +1,4 @@
-api_key=None
+api_key="RGAPI-22633caa-17f8-4183-89fa-72ffd7d4820b"
 acc_match_file="data/acc_to_match_list.pickle"
 acc_refresh_file="data/acc_refresh.pickle"
 name_acc_file="data/name_acc.pickle"

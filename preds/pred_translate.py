@@ -7,8 +7,13 @@ import preds.gamepreds as gamepreds
 #input: s : a string that refers to a condition
 #output: a condition predicate that can be called on a match id which will return true or false
 
-#def cond_map(s):
-#   res =
+#Valid Inputs:
+# team_first_drag, team_first_tower, team_first_blood, team_win
+
+
+#TODO: Add player preds because right now only team preds in here
+#How can I dynamically add predicates here without the code being incredibly long
+#Should that also be within a database or something 
 
 def translate(s):
     if s == 'team_first_drag':

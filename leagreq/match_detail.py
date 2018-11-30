@@ -306,6 +306,7 @@ def testing():
     dd = id_to_data(m,200,id_type='team_id',result_type='team_data')
     aa = id_to_data(m,7,id_type='participant_id',result_type='team_data')
     asdf = id_to_data(m,7,id_type='participant_id',result_type='role')
+    pd = id_to_data(m,7,id_type='participant_id',result_type='part_data')
     print(mm)
     print(rr)
     print(ww)
@@ -313,7 +314,7 @@ def testing():
     print(aa)
     print(dd)
     print(asdf)
-
+    print(pd['timeline'])
     #print(r['gameMode'])
     #print(r['gameType'])
     #print(r['gameVersion'])

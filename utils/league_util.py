@@ -43,7 +43,7 @@ def save_pickled_map(file,m): #i feel like i need a try catch
 #
 #
 def get_current_timestamp():
-    res = long(time.time() * 1000)
+    res = time.time() * 1000
     return res
 
 if __name__ == '__main__':
