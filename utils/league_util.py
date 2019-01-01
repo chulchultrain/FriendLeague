@@ -3,12 +3,21 @@ import subprocess
 import datetime
 import time
 import pickle
-
+import psycopg2
+import league_conf
 #   League Util: Exists as a place for utility functions that have a place in many scripts
 #
 #
 #
 #
+
+
+def conn_postgre():
+    conn = psycopg2.connect(host=league_conf.postgre_host,
+    database=league_conf.postgre_db,
+    user=league_conf.postgre_user,
+    password=league_conf.postgre_pass)
+    return conn
 
 #load_pickled_map function
 #loads a pickled map from the passed file name
@@ -43,8 +52,14 @@ def save_pickled_map(file,m): #i feel like i need a try catch
 #
 #
 def get_current_timestamp():
-    res = time.time() * 1000
+    res = time.time()
     return res
 
+def dt_to_riot_timestamp(dt):
+    timestamp = dt.timestamp()
+    timestamp = int(timestamp * 1000)
+    return timestamp
+
 if __name__ == '__main__':
-    print(get_current_timestamp() - 3600000 * 20)
+    print(get_current_timestamp() )
+    conn_postgre()
