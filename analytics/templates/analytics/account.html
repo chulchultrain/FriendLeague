@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> {{ account.name }} </title>
+</head>
+
+<body>
+    <h1> {{ account.account_id }} </h1>
+    <h1> {{ account.name }} </h1>
+    <p> Flex matches {{ account.flex_match_list|length }} {{ account.flex_match_list }} </p>
+    <p> Solo matches {{ account.solo_match_list|length }} {{ account.solo_match_list }} </p>
+    <p> refresh timestamp {{ account.refresh }} </p>
+</body>
+
+</html>
