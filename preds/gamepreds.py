@@ -1,5 +1,6 @@
 import leagreq.match_detail as match_detail
 import leagreq.champ_detail as champ_detail
+import utils.league_util as league_util
 
 # generates a game condition function that operates on match id
 # inputs : game_cond_predicate : the predicate we wish to test
@@ -8,8 +9,8 @@ import leagreq.champ_detail as champ_detail
 # based on whether the condition is true or not
 def game_cond(game_cond_predicate):
     #get id. get part id. get team id. check if that team took first drag
-    def inner(m):
-        m_d = match_detail.match_data_from_id(m)
+    def inner(m,cursor):
+        m_d = match_detail.match_data_from_id(m,cursor)
         if m_d is None:
             return False
         return game_cond_predicate(m_d)
@@ -64,13 +65,16 @@ def champ_enemy_team(champion_name,acc_id_li):
 
 def testing():
     #2858500164's actual game len is 1820
-    is_1820 = game_len_int_cond(1819,1820)
-    is_1820_game = game_cond(is_1820)
-    assert(is_1820_game(2858500164))
-    isnt_2000 = game_len_int_cond(1821,2000)
-    isnt_2000_game = game_cond(isnt_2000)
-    assert(not isnt_2000_game(2858500164))
-    pass
+    with league_util.conn_postgre() as cnx:
+        with cnx.cursor() as cursor:
+            is_1820 = game_len_int_cond(1819,1820)
+            is_1820_game = game_cond(is_1820)
+            assert(is_1820_game(2858500164,cursor))
+            isnt_2000 = game_len_int_cond(1821,2000)
+            isnt_2000_game = game_cond(isnt_2000)
+            assert(not isnt_2000_game(2858500164,cursor))
+        cnx.commit()
+
 
 
 if __name__ == "__main__":

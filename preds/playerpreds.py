@@ -1,15 +1,15 @@
 import leagreq.match_detail as match_detail
 import leagreq.match_timeline as match_timeline
 import leagreq.champ_detail as champ_detail
-
+import utils.league_util as league_util
 # generates a player condition function that operates on a match id
 # inputs: id - account id of the player in question
 #         player_cond_predicate - the predicate we wish to test
 #                               - the predicate should take the participant_data as an input
 # output: a player condition function that takes a match id as input and returns a boolean based on whether the condition is true or not
 def player_cond(id,player_cond_predicate):
-    def inner(m_id):
-        m_d = match_detail.match_data_from_id(m_id)
+    def inner(m_id,cursor):
+        m_d = match_detail.match_data_from_id(m_id,cursor)
         if m_d is None:
             return False
         in_map = match_detail.inter_map(m_d)
@@ -81,16 +81,19 @@ def got_first_blood():
     return inner
 
 def testing():
-    is_top = is_lane('TOP')
-    i_am_top = player_cond(38566957,is_top)
-    assert(i_am_top(2858500164))
-    is_mid = is_lane('MIDDLE')
-    i_am_mid = player_cond(38566957,is_mid)
-    assert(i_am_mid(2858500164) == False)
-    is_camille = plays_champ('Camille')
-    i_am_camille = player_cond(38566957,is_camille)
-    assert(i_am_camille(2858500164))
-    christina_is_camille = player_cond(48258111,is_camille)
-    assert(christina_is_camille(2858500164) == False)
+    with league_util.conn_postgre() as cnx:
+        with cnx.cursor() as cursor:
+            is_top = is_lane('TOP')
+            i_am_top = player_cond(38566957,is_top)
+            assert(i_am_top(2858500164,cursor))
+            is_mid = is_lane('MIDDLE')
+            i_am_mid = player_cond(38566957,is_mid)
+            assert(i_am_mid(2858500164,cursor) == False)
+            is_camille = plays_champ('Camille')
+            i_am_camille = player_cond(38566957,is_camille)
+            assert(i_am_camille(2858500164,cursor))
+            christina_is_camille = player_cond(48258111,is_camille)
+            assert(christina_is_camille(2858500164,cursor) == False)
+        cnx.commit()
 if __name__ == "__main__":
     testing()

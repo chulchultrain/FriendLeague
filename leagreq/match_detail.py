@@ -5,25 +5,8 @@ import utils.tinydbmap as tinydbmap
 import utils.sqlitemap as sqlitemap
 import league_conf
 import pickle
-
-match_id_to_data = {}
-
-# load_match_data_map function
-# this function will create/load the map that
-# maps match_id to match_data from the data structure file
-# indicated by our configuration
-def load_match_data_map():
-    #res = league_util.load_pickled_map(league_conf.match_data_file)
-    #res = filemap.Filemap(league_conf.match_data_dir)
-    #res = tinydbmap.TinyDBMap(league_conf.match_data_db,'gameId')
-    res = sqlitemap.SqliteMap(league_conf.match_data_db)
-    return res
-# save_match_data_map function
-# this function will save our match_id to match_data map
-# to the appropriate data structure file indicated by our configuration
-def save_match_data_map(acc_to_match):
-    #league_util.save_pickled_map(league_conf.match_data_file,acc_to_match)
-    pass
+import psycopg2
+import json
 
 # match_data_refresh function
 # low level function
@@ -36,20 +19,40 @@ def match_data_refresh(match_id):
         return None
     return match_data
 
+#
+#   try to retrieve match data from our database
+#   return None is does not exist
+#
+def retrieve_match_data(match_id,cursor):
+    stmt = 'select match_data from analytics_match_detail where match_id = %s'
+    cursor.execute(stmt,[match_id])
+    try:
+        match_data = cursor.fetchone()
+        if match_data is not None:
+            match_data = match_data[0]
+    except psycopg2.ProgrammingError:
+        match_data = None
+    return match_data
+
+def insert_match_data(match_id,match_data,cursor):
+    #TODO:
+    match_data_str = json.dumps(match_data)
+    stmt = 'insert into analytics_match_detail values(%s,%s)'
+    cursor.execute(stmt,[match_id,match_data_str])
 
 
 # match_data_from_id function
 # high level function
 # this function returns the desired match data given a match id.
-def match_data_from_id(match_id):
-    if match_id not in match_id_to_data:
+def match_data_from_id(match_id,cursor):
+    match_data = retrieve_match_data(match_id,cursor)
+    if match_data is None:
         match_data = match_data_refresh(match_id)
-        if match_data != None:
-            #match_data = filter_match_data_for_storage(match_data)
-            match_id_to_data[match_id] = match_data
-        return match_data
-    else:
-        return match_id_to_data[match_id]
+        if match_data is None:
+            print("Could not find data for match {0}".format(match_id))
+        else:
+            insert_match_data(match_id,match_data,cursor)
+    return match_data
 
 # players_from_match function
 # high level function
@@ -139,8 +142,7 @@ def find_other_team_from_id_li(m_d,acc_id_li):
 # setup function
 # does all necessary tasks to use this entire module correctly
 def setup():
-    global match_id_to_data
-    match_id_to_data = load_match_data_map()
+    pass
 
 def calc_cs(pd):
     stats = pd['stats']
@@ -290,37 +292,39 @@ def enemy_team_id(in_map,team_id):
 # and save results from processing
 # Note: Should really be called at the end of the caller scripts life.
 def cleanup():
-    global match_id_to_data
-    save_match_data_map(match_id_to_data)
+    pass
 
 def testing():
-    r = match_data_from_id(2859270267)
-    #print(r)
-    m = inter_map(r)
-    for x in m:
-        print(x)
-    mm = id_to_data(m,239590109,id_type='account_id',result_type='participant_id')
-    rr = id_to_data(m,7,id_type='participant_id',result_type='account_id')
-    ww = id_to_data(m,7,id_type='participant_id',result_type='team_id')
-    ee = id_to_data(m,7,id_type='participant_id',result_type='parts_on_team')
-    dd = id_to_data(m,200,id_type='team_id',result_type='team_data')
-    aa = id_to_data(m,7,id_type='participant_id',result_type='team_data')
-    asdf = id_to_data(m,7,id_type='participant_id',result_type='role')
-    pd = id_to_data(m,7,id_type='participant_id',result_type='part_data')
-    print(mm)
-    print(rr)
-    print(ww)
-    print(ee)
-    print(aa)
-    print(dd)
-    print(asdf)
-    print(pd['timeline'])
-    #print(r['gameMode'])
-    #print(r['gameType'])
-    #print(r['gameVersion'])
-    #print(players_from_match(2526402692))
-    #print(match_data_from_id(2524795289))
-    #print(get_match_win(2524795289,32421132))
+    with league_util.conn_postgre() as cnx:
+        with cnx.cursor() as cursor:
+            r = match_data_from_id(2859270267,cursor)
+            #print(r)
+            m = inter_map(r)
+            for x in m:
+                print(x)
+            mm = id_to_data(m,239590109,id_type='account_id',result_type='participant_id')
+            rr = id_to_data(m,7,id_type='participant_id',result_type='account_id')
+            ww = id_to_data(m,7,id_type='participant_id',result_type='team_id')
+            ee = id_to_data(m,7,id_type='participant_id',result_type='parts_on_team')
+            dd = id_to_data(m,200,id_type='team_id',result_type='team_data')
+            aa = id_to_data(m,7,id_type='participant_id',result_type='team_data')
+            asdf = id_to_data(m,7,id_type='participant_id',result_type='role')
+            pd = id_to_data(m,7,id_type='participant_id',result_type='part_data')
+            print(mm)
+            print(rr)
+            print(ww)
+            print(ee)
+            print(aa)
+            print(dd)
+            print(asdf)
+            print(pd['timeline'])
+            #print(r['gameMode'])
+            #print(r['gameType'])
+            #print(r['gameVersion'])
+            #print(players_from_match(2526402692))
+            #print(match_data_from_id(2524795289))
+            #print(get_match_win(2524795289,32421132))
+        cnx.commit()
 
 
 setup()

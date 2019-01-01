@@ -14,10 +14,11 @@ import time
 
 def request_url_map_populate():
     request_url_map = {}
-    request_url_map['match_list'] = '/lol/match/v3/matchlists/by-account'
-    request_url_map['summoner'] = '/lol/summoner/v3/summoners/by-name'
-    request_url_map['match'] = '/lol/match/v3/matches'
-    request_url_map['matchTimeline'] = '/lol/match/v3/timelines/by-match'
+    request_url_map['match_list'] = '/lol/match/v4/matchlists/by-account'
+    request_url_map['summoner'] = '/lol/summoner/v4/summoners/by-name'
+    request_url_map['account'] = '/lol/summoner/v4/summoners/by-account'
+    request_url_map['match'] = '/lol/match/v4/matches'
+    request_url_map['matchTimeline'] = '/lol/match/v4/timelines/by-match'
     request_url_map['champion'] = 'champion.json'
     return request_url_map
 
@@ -134,17 +135,24 @@ def request(r_type,r_value=None,header_params=None):
 
 
 def testing_match_list():
-    s1 = request('match_list','44649467',{'season':'4'})
+    s1 = request('match_list','iCu9bp2VLrsnq1cUMqDeE3R1rSgEbZnu99BXT07CpmBx3Q',{'season':'4'})
     assert('matches' in s1)
     x = s1['matches']
     for y in x:
         assert('season' in y)
         assert(y['season'] == 4)
 
+def testing_account():
+    s1 = request('account','iCu9bp2VLrsnq1cUMqDeE3R1rSgEbZnu99BXT07CpmBx3Q')
+    assert('accountId' in s1)
 
 def test_timeline():
     s1 = request('matchTimeline','2858485810')
     assert('frameInterval' in s1)
+
+def test_match():
+    s1 = request('match','2858485810')
+    assert('queueId' in s1)
 
 def testing_summoner_name_DNE():
     s1 = request('summoner','timban')
@@ -161,8 +169,10 @@ def test_static():
 def testing():
     testing_summoner_name_DNE()
     testing_summoner_name_pass()
+    testing_account()
     testing_match_list()
     test_timeline()
+    test_match()
     pass
 
 if __name__ == "__main__":
