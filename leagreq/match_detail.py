@@ -39,6 +39,8 @@ def insert_match_data(match_id,match_data,cursor):
     match_data_str = json.dumps(match_data)
     stmt = 'insert into analytics_match_detail values(%s,%s)'
     cursor.execute(stmt,[match_id,match_data_str])
+    cnx = cursor.connection()
+    cnx.commit()
 
 
 # match_data_from_id function

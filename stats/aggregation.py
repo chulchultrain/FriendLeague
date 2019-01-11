@@ -31,10 +31,11 @@ def map_default_val(m,val):
 
 def aggregate_match_in(stats_so_far,count_copy,m):
     pass
-def stat_aggregate(m_l,data_points,required_data_func):
-    count_copy = copy.deep_copy(data_points)
-    map_default_val(count_copy,0)
-    stats_so_far = copy.deep_copy(count_copy)
+
+def stat_aggregate(m_l,required_data_func,merge_in,):
+    #count_copy = copy.deep_copy(data_points)
+    #map_default_val(count_copy,0)
+    #stats_so_far = copy.deep_copy(count_copy)
     for m in m_l:
         agg_stat = required_data_func(m)
         aggregate_match_in(stats_so_far,count_copy,agg_stat)
@@ -102,13 +103,13 @@ def single_player_stats_wanted(part_data):
 
 
 #TODO: Remove from here. wrong module for this sort of thing
-def single_player_get_data(id):
+def single_player_get_data(account_id):
     def inner(m_id):
         m_d = match_detail.match_data_from_id(m_id)
         if m_d is None:
             return None
         in_map = match_detail.inter_map(m_d)
-        player_data = match_detail.id_to_data(in_map,id,id_type='account_id',result_type='part_data')
+        player_data = match_detail.id_to_data(in_map,account_id,id_type='account_id',result_type='part_data')
         if player_data is None:
             return None
         return single_player_stats_wanted(player_data)
@@ -167,7 +168,6 @@ def stat_aggregate(m_l,required_data_func):
     return res
 
 
-
 def sum_cs(p_li):
     res = 0
     for x in p_li:
@@ -182,146 +182,18 @@ def sum_kills(p_li):
         res += stats['kills']
     return res
 
-def winrate_by_role_most_damage(m_l,acc_id_li):
-    res = {}
-    # map parts to roles
-    # find out which part has the highest dmg
-    # map that part to role, and in res, increment that one
-    for m in m_l:
-        m_d = match_detail.match_data_from_id(m)
-        if m_d is None or gamepreds.is_remake()(m_d):
-            continue
-        in_map = match_detail.inter_map(m_d)
-        for a in acc_id_li:
-            t_id = match_detail.id_to_data(in_map,a,id_type='account_id',result_type='team_id')
-            if t_id is not None:
-                break
-        team_part_ids = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='parts_on_team')
-        td = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='team_data')
-        max_dmg = 0
-        max_role = ''
-        for pid in team_part_ids:
-            role = match_detail.id_to_data(in_map,pid,id_type='participant_id',result_type='role')
-            pd = match_detail.id_to_data(in_map,pid,id_type='participant_id',result_type='part_data')
-            dmg = pd['stats']['totalDamageDealtToChampions']
-            if dmg > max_dmg:
-                max_role = role
-                max_dmg = dmg
-        if max_role not in res:
-            res[max_role] = [0,0]
-            print(repr(max_role))
-        won = td['win'] == 'Win'
-        if won:
-            res[max_role][0] += 1
-        else:
-            res[max_role][1] += 1
-        if(max_role == u'NONE'):
-            print(max_dmg)
-    return res
 
-
-def winrate_having_more_cs(m_l,acc_id_li):
-    win,loss = 0,0
-    for m in m_l:
-        m_d = match_detail.match_data_from_id(m)
-        if m_d is None:
-            continue
-        in_map = match_detail.inter_map(m_d)
-        for a in acc_id_li:
-            t_id = match_detail.id_to_data(in_map,a,id_type='account_id',result_type='team_id')
-            if t_id is not None:
-                break
-        e_t_id = match_detail.enemy_team_id(in_map,t_id)
-        team_part_data = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='team_part_data')
-        enemy_part_data = match_detail.id_to_data(in_map,e_t_id,id_type='team_id',result_type='team_part_data')
-        td = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='team_data')
-        ally_cs = sum_cs(team_part_data)
-        enemy_cs = sum_cs(enemy_part_data)
-        won = td['win'] == 'Win'
-        if ally_cs > enemy_cs:
-            if won:
-                win += 1
-            else:
-                loss += 1
-    total = win + loss
-
-    return round(win * 1.0 / total, 3)
-
-def winrate_having_more_kills(m_l,acc_id_li):
-    win,loss = 0,0
-    for m in m_l:
-        m_d = match_detail.match_data_from_id(m)
-        if m_d is None:
-            continue
-        in_map = match_detail.inter_map(m_d)
-        for a in acc_id_li:
-            t_id = match_detail.id_to_data(in_map,a,id_type='account_id',result_type='team_id')
-            if t_id is not None:
-                break
-        e_t_id = match_detail.enemy_team_id(in_map,t_id)
-        team_part_data = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='team_part_data')
-        enemy_part_data = match_detail.id_to_data(in_map,e_t_id,id_type='team_id',result_type='team_part_data')
-        td = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='team_data')
-        ally_kills = sum_kills(team_part_data)
-        enemy_kills = sum_kills(enemy_part_data)
-        won = td['win'] == 'Win'
-        if won:
-            if ally_kills > enemy_kills:
-                win += 1
-            else:
-                loss += 1
-    total = win + loss
-    return round(win * 1.0 / total, 3)
-
-def winrate_vs_all_champs(m_l,acc_id_li):
-    res = {}
-    for m in m_l:
-        enemy_champs = []
-        m_d = match_detail.match_data_from_id(m)
-        if m_d is None:
-            continue
-        in_map = match_detail.inter_map(m_d)
-
-        for a in acc_id_li:
-            t_id = match_detail.id_to_data(in_map,a,id_type='account_id',result_type='team_id')
-            if t_id is not None:
-                break
-        e_t_id = match_detail.enemy_team_id(in_map,t_id)
-        enemy_part_data = match_detail.id_to_data(in_map,e_t_id,id_type='team_id',result_type='team_part_data')
-        for p in enemy_part_data:
-                enemy_champs.append(p['championId'])
-        for c in enemy_champs:
-            if c not in res:
-                res[c] = [0,0]
-        td = match_detail.id_to_data(in_map,t_id,id_type='team_id',result_type='team_data')
-        won = td['win'] == 'Win'
-        if won:
-            for c in enemy_champs:
-                 res[c][0] += 1
-        else:
-            for c in enemy_champs:
-                res[c][1] += 1
-    return res
 
 if __name__ == "__main__":
     name_li = ['crysteenah','chulminyang','sbaneling']
-    name_li += ['timbangu']
+    name_li += ['blanket robber']
     name_li += ['starcalls coffee','ilovememundo','chulchultrain']
-    name_li += ['bigheartjohnny','1000pingftw','inting griefer']
+    name_li += ['bigheartjohnny','FlexMasterJohnny']
     name_li += ['thegoldenpenis']
-    acc_id_li = name_to_acc.get_acc_id_for_group(name_li)
+    cnx = league_util.conn_postgre()
+    cursor = cnx.cursor()
+    acc_id_li = name_to_acc.get_acc_id_for_group(name_li,cursor)
     #ft_pred = teampreds.team_cond(acc_id_li,teampreds.first_tower)
     win_pred = teampreds.team_cond(teampreds.team_cond_win)(acc_id_li)
-    m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li)
+    m_l = acc_to_matches.get_flex_match_list_for_group(acc_id_li,True,cursor)
     print(len(m_l))
-
-    role_win_rate = winrate_by_role_most_damage(m_l,acc_id_li)
-    for role in role_win_rate:
-        print(role)
-        win = role_win_rate[role][0]
-        loss = role_win_rate[role][1]
-        total = win + loss
-        rate = round(win * 1.0 / total,3)
-        print(win)
-        print(loss)
-        print(rate)

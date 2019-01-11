@@ -12,8 +12,12 @@ def index(request):
     return HttpResponse("Hello, World. analytics index")
 
 def account(request,name):
+    # Recent X games, print some stats about them, like the
+    #
+    #
     #TODO: if name doesnt exist then retrieve from riot API and recreate
     acc = get_object_or_404(Account,name=name)
+    recent_ml =
     params = {'account': acc}
     return render(request,'analytics/account.html',params)
     #return HttpResponse("Hello, World. " + acc.account_id)

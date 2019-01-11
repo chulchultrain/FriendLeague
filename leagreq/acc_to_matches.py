@@ -83,7 +83,8 @@ def insert_matches(id,cursor,match_gen_list):
     print(solo_update)
     cursor.execute(solo_update,[solo_matches,id])
     cursor.execute(flex_update,[flex_matches,id])
-
+    cnx = cursor.connection
+    cnx.commit()
 
 
 
@@ -110,21 +111,21 @@ def is_solo_match(match):
 def is_flex_match(match):
     return match['queue'] == 440
 
+def all_matches(id,refresh_flag=False,cursor=None):
+    if(refresh_flag):
+        refresh_matches(id,cursor)
+    res = get_existing_matches(id,cursor)
+    return res
+
 # solo_q_matches function
 # Top Level Function
 # gets all solo queue matches for a given id
 # by filtering on all the matches for the solo queue type
 # and takes a refresh flag to indicate whether to call Riot API for more matches
 def solo_q_matches(id, refresh_flag = False,cursor=None):
-    if cursor is None:
-        cnx = league_util.conn_postgre()
-        cursor = cnx.cursor()
-    else:
-        cnx = cursor.connection
     if(refresh_flag):
         refresh_matches(id,cursor)
     res = get_existing_matches(id,cursor,queue='solo')
-    cnx.commit()
     return res
 
 
@@ -134,15 +135,9 @@ def solo_q_matches(id, refresh_flag = False,cursor=None):
 # by filtering on all the matches for the flex queue type
 # and takes a refresh flag to indicate whether to call Riot API for more matches
 def flex_q_matches(name,refresh_flag = False,cursor=None):
-    if cursor is None:
-        cnx = league_util.conn_postgre()
-        cursor = cnx.cursor()
-    else:
-        cnx = cursor.connection()
     if(refresh_flag):
         refresh_matches(id,cursor)
     res = get_existing_matches(id,cursor,queue='flex')
-    cnx.commit()
     return res
 
 #TODO: A SOLO Q COUNTERPART TO get_flex_match_list_for_group
@@ -155,11 +150,6 @@ def flex_q_matches(name,refresh_flag = False,cursor=None):
 # acc_id_li : List[Int/Long]
 # refresh_flag : Boolean
 def get_flex_match_list_for_group(acc_name_li,refresh_flag = False,cursor=None):
-    if cursor is None:
-        cnx = league_util.conn_postgre()
-        cursor = cnx.cursor()
-    else:
-        cnx = cursor.connection()
     init_filter = []
     id_set = set()
     for a in acc_name_li:
@@ -168,7 +158,6 @@ def get_flex_match_list_for_group(acc_name_li,refresh_flag = False,cursor=None):
             if m not in id_set:
                 init_filter.append(m)
                 id_set.add(m)
-    cnx.commit()
     return init_filter
 
 # setup function
@@ -192,7 +181,7 @@ def testing():
     #print(matches_from_id(44649467))
     with league_util.conn_postgre() as cnx:
         with cnx.cursor() as cursor:
-            print(solo_q_matches('E94Qwk4wKcW0u2H34tZ-qGOOQxX8OnyNTItJUwB6zdDIDg',refresh_flag=True,cursor=cursor))
+            print(solo_q_matches('iCu9bp2VLrsnq1cUMqDeE3R1rSgEbZnu99BXT07CpmBx3Q',refresh_flag=True,cursor=cursor))
     print("NO ASSERTS FOR THSI MODULE")
 setup()
 if __name__ == "__main__":

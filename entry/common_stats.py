@@ -54,6 +54,7 @@ def single_player(name,champion_name=None,lane=None):
     for x in res_map:
         print(str(x) + ":")
         print(res_map[x])
+    return res_map
 
 if __name__ == "__main__":
     name,champion,role = solo_cond_arg_parse(sys.argv)

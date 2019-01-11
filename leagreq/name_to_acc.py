@@ -40,6 +40,8 @@ def insert_new_account(account_id,name,cursor):
     param_li = [account_id,name]
     try:
         cursor.execute('insert into analytics_account values(%s,%s,array[]::bigint[],to_timestamp(0),array[]::bigint[])',param_li)
+        cnx = cursor.connection
+        cnx.commit()
     except Exception as e:
         print(e)
 def retrieve_account_id_from_name(name,cursor=None):
@@ -69,6 +71,8 @@ def retrieve_account_id_from_name(name,cursor=None):
     elif seen_account_name is not name:
         try:
             cursor.execute('update analytics_account set name=%s where account_id =%s',[name,account_id])
+            cnx = cursor.connection
+            cnx.commit()
         except Exception as e:
             print(e)
     return account_id
@@ -122,7 +126,7 @@ def testing():
             for x in a_k:
                 assert(a_k[x] == account_id_from_name(x,cursor))
                 #print(account_id_from_name(x,cursor))
-        cnx.commit()
+            print(account_id_from_name('summontheez',cursor))
 
 
 setup()
