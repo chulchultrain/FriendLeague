@@ -181,7 +181,7 @@ def testing():
     #print(matches_from_id(44649467))
     with league_util.conn_postgre() as cnx:
         with cnx.cursor() as cursor:
-            print(solo_q_matches('iCu9bp2VLrsnq1cUMqDeE3R1rSgEbZnu99BXT07CpmBx3Q',refresh_flag=True,cursor=cursor))
+            print(solo_q_matches('bvw_nI2IATn8zNJosGoqNacUFUURmWRjMy-mrbWksN75gw',refresh_flag=True,cursor=cursor))
     print("NO ASSERTS FOR THSI MODULE")
 setup()
 if __name__ == "__main__":

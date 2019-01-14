@@ -27,7 +27,8 @@ def account_id_from_name_refresh(name):
 # output : account data : summonerDTO type from Riot API
 
 def exists_already(account_id,cursor=None):
-    cursor.execute('select account_id from analytics_account where id=%s',account_id)
+    stmt = 'select account_id from analytics_account where id=%s'
+    cursor.execute(stmt,account_id)
     try:
         s = cursor.fetchone()
         return s is not None
@@ -39,7 +40,8 @@ def insert_new_account(account_id,name,cursor):
     to_timestamp_0 = 'to_timestamp(0)'
     param_li = [account_id,name]
     try:
-        cursor.execute('insert into analytics_account values(%s,%s,array[]::bigint[],to_timestamp(0),array[]::bigint[])',param_li)
+        stmt = 'insert into analytics_account values(%s,%s,array[]::bigint[],to_timestamp(0),array[]::bigint[])'
+        cursor.execute(stmt,param_li)
         cnx = cursor.connection
         cnx.commit()
     except Exception as e:
@@ -55,7 +57,8 @@ def retrieve_account_id_from_name(name,cursor=None):
     print(name)
     retrieved = False
     account_id = account_id_from_name_refresh(name)
-    cursor.execute('select name from analytics_account where account_id = %s',[account_id])
+    stmt = 'select name from analytics_account where account_id = %s'
+    cursor.execute(stmt,[account_id])
     seen_account_name = None
     #cursor.execute('select account_id from analytics_account where name = %s',[name])
     try:
@@ -70,7 +73,8 @@ def retrieve_account_id_from_name(name,cursor=None):
         insert_new_account(account_id,name,cursor)
     elif seen_account_name is not name:
         try:
-            cursor.execute('update analytics_account set name=%s where account_id =%s',[name,account_id])
+            stmt = 'update analytics_account set name=%s where account_id =%s'
+            cursor.execute(stmt,[name,account_id])
             cnx = cursor.connection
             cnx.commit()
         except Exception as e:
@@ -124,8 +128,8 @@ def testing():
             a_k['sbaneling'] = '5JZCl447vMc_ym7ScniqYQMO7-zT3J-PAKenjvH7vuGGifM'
             a_k['pebblekid'] = 'CE_LjdDWMle7WDawaEerNpnt2kU2wqEFSVKG8WE3HGtNJbo'
             for x in a_k:
-                assert(a_k[x] == account_id_from_name(x,cursor))
-                #print(account_id_from_name(x,cursor))
+                #assert(a_k[x] == account_id_from_name(x,cursor))
+                print(account_id_from_name(x,cursor))
             print(account_id_from_name('summontheez',cursor))
 
 

@@ -2,29 +2,8 @@ import leagreq.league_curl as league_curl
 import utils.filemap as filemap
 import utils.league_util as league_util
 import league_conf
-
-# purpose get champion data like name id all that good shit.
-# do i need some sort of associative mapping software in order to do this?
-# so that i dont have to have maps from id to name and name to id and all that?
-#
-
-champion_data = {}
-name_to_id = {}
-
-
-# load_champion_data_map function
-# loads the champion data map
-# that maps the champion_id to champion data
-# output : a map-like data structure
-def load_champion_data_map():
-    #return filemap.Filemap(league_conf.champion_data_dir)
-    return league_util.load_pickled_map(league_conf.champ_detail_file)
-
-
-def save_champion_data_map():
-    global champion_data
-    league_util.save_pickled_map(league_conf.champ_detail_file,champion_data)
-    pass
+import psycopg2
+import json
 
 # load_champion_name_id_map Function
 # loads the name id map
@@ -39,67 +18,70 @@ def load_champion_name_id_map():
         #print(id)
         #print(type(id))
     return res
-
-def save_champion_name_id_map():
-    pass
-
 # data_refresh function
 # refreshs the data from riot API
 # for champions
 def data_refresh():
-    global champion_data
-    global name_to_id
+    cnx = league_util.conn_postgre()
+    cursor = cnx.cursor()
     data = league_curl.request('champion')['data']
     res = {}
     for x in data:
         #print(x)
         key = int(data[x]['key'])
+        name = data[x]['name']
         #print(key)
-        r = data[x]
-        champion_data[key] = r
-    name_to_id = load_champion_name_id_map()
+        champ_data_str = json.dumps(data[x])
+        stmt = 'insert into analytics_champion values(%s,%s,%s)'
+        cursor.execute(stmt,[key,name,champ_data_str])
+    cnx.commit()
 
 # id_from_champion function
 # Top Level Function
 # input : champion_name : string
 # output : champ_id : int/long
-def id_from_champion(name):
-    global champion_data
-    global name_to_id
-    if name in name_to_id:
-        return name_to_id[name]
-    else:
-        return None
-
+def id_from_champion(name,cursor):
+    stmt = 'select champ_id from analytics_champion where LOWER(name) = LOWER(%s)'
+    champ_id = None
+    try:
+        cursor.execute(stmt,[name])
+        row = cursor.fetchone()
+        if row is not None:
+            champ_id = row[0]
+    except psycopg2.ProgrammingError:
+        champ_id = None
+    return champ_id
 # data_from_id function
 # Top Level Function
 # input : champion_id : int
 # output : champion data structure from Riot API
-def data_from_id(id):
-    global champion_data
-    if id in champion_data:
-        return champion_data[id]
-    else:
-        return None
+def data_from_id(champ_id,cursor):
+    stmt = 'select champ_data from analytics_champion where champ_id = %s'
+    champ_data = None
+    try:
+        cursor.execute(stmt,[champ_id])
+        row = cursor.fetchone()
+        if row is not None:
+            champ_data = row[0]
+    except psycopg2.ProgrammingError:
+        champ_data= None
+    return champ_data
 
 # setup function
 # does all necessary tasks to use this entire module correctly
 def setup():
-    global champion_data
-    global name_to_id
-    champion_data = load_champion_data_map()
-    name_to_id = load_champion_name_id_map()
-    #data_refresh()
+    pass
 def cleanup():
-    save_champion_data_map()
-    save_champion_name_id_map()
+    pass
 
 #testing function
 def testing():
-    assert(id_from_champion('Lux') == 99)
-    assert(id_from_champion('Ahri') == 103)
-    assert(data_from_id(99)['name'] == 'Lux')
-setup()
-cleanup()
+    with league_util.conn_postgre() as cnx:
+        with cnx.cursor() as cursor:
+            assert(id_from_champion('Lux',cursor) == 99)
+            assert(id_from_champion('Ahri',cursor) == 103)
+            assert(data_from_id(99,cursor)['name'] == 'Lux')
+
 if __name__ == '__main__':
+    #data_refresh()
     testing()

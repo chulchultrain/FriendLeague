@@ -25,8 +25,10 @@ def match_data_refresh(match_id):
 #
 def retrieve_match_data(match_id,cursor):
     stmt = 'select match_data from analytics_match_detail where match_id = %s'
-    cursor.execute(stmt,[match_id])
+
+    match_data = None
     try:
+        cursor.execute(stmt,[match_id])
         match_data = cursor.fetchone()
         if match_data is not None:
             match_data = match_data[0]

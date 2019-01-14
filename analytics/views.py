@@ -17,7 +17,6 @@ def account(request,name):
     #
     #TODO: if name doesnt exist then retrieve from riot API and recreate
     acc = get_object_or_404(Account,name=name)
-    recent_ml =
     params = {'account': acc}
     return render(request,'analytics/account.html',params)
     #return HttpResponse("Hello, World. " + acc.account_id)
