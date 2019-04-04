@@ -1,13 +1,16 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'FriendLeague.settings'
 import leagreq.league_curl as league_curl
 import league_conf
 import utils.league_util as league_util
-import utils.filemap as filemap
 import pickle
 import subprocess
-
-name_to_account_data = {}
-
-
+import django
+from django.conf import settings
+if __name__ == '__main__':
+    django.setup()
+from django.db import models
+from analytics.models import Account
 
 #TODO: What should happen when 4XX error?
 # account_data_from_name_refresh function
@@ -27,23 +30,24 @@ def account_id_from_name_refresh(name):
 # output : account data : summonerDTO type from Riot API
 
 def exists_already(account_id,cursor=None):
-    stmt = 'select account_id from analytics_account where id=%s'
-    cursor.execute(stmt,account_id)
     try:
-        s = cursor.fetchone()
-        return s is not None
-    except:
+        Account.objects.get(account_id=account_id)
+    except Account.DoesNotExist as e:
+        print(e)
         return False
+    return True
 
 def insert_new_account(account_id,name,cursor):
     big_int_array = 'array[]::bigint[]'
     to_timestamp_0 = 'to_timestamp(0)'
     param_li = [account_id,name]
     try:
-        stmt = 'insert into analytics_account values(%s,%s,array[]::bigint[],to_timestamp(0),array[]::bigint[])'
-        cursor.execute(stmt,param_li)
-        cnx = cursor.connection
-        cnx.commit()
+        acc = Account(account_id=account_id,name=name)
+        acc.save()
+        #stmt = 'insert into analytics_account values(%s,%s,array[]::bigint[],to_timestamp(0),array[]::bigint[])'
+        #cursor.execute(stmt,param_li)
+        #cnx = cursor.connection
+        #cnx.commit()
     except Exception as e:
         print(e)
 def retrieve_account_id_from_name(name,cursor=None):
@@ -57,28 +61,14 @@ def retrieve_account_id_from_name(name,cursor=None):
     print(name)
     retrieved = False
     account_id = account_id_from_name_refresh(name)
-    stmt = 'select name from analytics_account where account_id = %s'
-    cursor.execute(stmt,[account_id])
-    seen_account_name = None
-    #cursor.execute('select account_id from analytics_account where name = %s',[name])
     try:
-        row = cursor.fetchone()
-        if row is not None:
-            seen_account_name = row[0]
-    except:
-        seen_account_name = None
-        pass
-    print(account_id)
-    if seen_account_name is None:
+        acc = Account.objects.get(account_id=account_id)
+        if name.lower() != acc.name.lower():
+            acc.name = name
+            acc.save()
+    except Account.DoesNotExist as e:
+        print(e)
         insert_new_account(account_id,name,cursor)
-    elif seen_account_name is not name:
-        try:
-            stmt = 'update analytics_account set name=%s where account_id =%s'
-            cursor.execute(stmt,[name,account_id])
-            cnx = cursor.connection
-            cnx.commit()
-        except Exception as e:
-            print(e)
     return account_id
 
 # account_id_from_name function
@@ -115,18 +105,24 @@ def cleanup():
     pass
 
 #testing function to make sure its all good
+
+def inner_testing():
+    print(exists_already('E94Qwk4wKcW0u2H34tZ-qGOOQxX8OnyNTItJUwB6zdDIDg',None))
+    print(exists_already('herp',None))
+
 def testing():
+    #inner_testing()
     with league_util.conn_postgre() as cnx:
         with cnx.cursor() as cursor:
             a_k = {}
-            a_k['chulchultrain'] = 'E94Qwk4wKcW0u2H34tZ-qGOOQxX8OnyNTItJUwB6zdDIDg'
-            a_k['chulminyang'] = 'YHZxJ6M8JP_0Ck88iwgwvrC0Edub3vRUBzMv6vR4CF293w'
-            a_k['crysteenah'] = 'iCu9bp2VLrsnq1cUMqDeE3R1rSgEbZnu99BXT07CpmBx3Q'
-            a_k['blanket robber'] = 'u4j74jeLLZgQoUwjkMxsOuukHunraQpv7LtFuft99cx0Ow'
-            a_k['starcalls coffee'] = '5ukTT5PUJI-1exEIGIGz2zNoS2d5nWfgtgHdN7eipmIUZg'
-            a_k['ilovememundo'] = 'CS9Na6UJ3cMwUHV13CGgjsddXiXlZ_P2DaeODZgf4LDQuw'
-            a_k['sbaneling'] = '5JZCl447vMc_ym7ScniqYQMO7-zT3J-PAKenjvH7vuGGifM'
-            a_k['pebblekid'] = 'CE_LjdDWMle7WDawaEerNpnt2kU2wqEFSVKG8WE3HGtNJbo'
+            a_k['chulchultrain'] = 'PhjloNxjxrIOTQ4trcehe8OGiU9ABj933DBGRnO4GBfqNw'
+            a_k['chulminyang'] = 'XfVmqID5O2tHwGU0wroo7AM2JGYXSnbouxR4np57zd1NQw'
+            a_k['crysteenah'] = 'bvw_nI2IATn8zNJosGoqNacUFUURmWRjMy-mrbWksN75gw'
+            a_k['blanket robber'] = 'Apa_1kMg9ckSifHjbmEqdivPV1ZE-PG0VBDsFblbnDfxCA'
+            a_k['starcalls coffee'] = 'JwdAIS2YHVF6vbxgHOIbgll7FMsfZIXyQv8k9hhmUl2JEw'
+            a_k['ilovememundo'] = 'jIMdQTRS3qiNR2EpHFnKQug9UTN-7N2xgj-UhrY6Cdj9HA'
+            a_k['sbaneling'] = 'E6QXRg4OdwKEWvebh8NjjLDTixMf5ncFKhc380Xud9TN2D0'
+            a_k['pebblekid'] = 'ag0vyR9w6id7cJhGTkJpu4aEGkK_V5-gZW1QFYcltcVzpRs'
             for x in a_k:
                 #assert(a_k[x] == account_id_from_name(x,cursor))
                 print(account_id_from_name(x,cursor))
@@ -135,5 +131,6 @@ def testing():
 
 setup()
 if __name__ == "__main__":
+    #inner_testing()
     testing()
 cleanup()

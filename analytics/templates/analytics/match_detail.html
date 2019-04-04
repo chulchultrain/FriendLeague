@@ -1,0 +1,7 @@
+{% extends 'analytics/account.html' %}
+
+{% block match_content %}
+  {% for partIdent in m.participantIdentities %}
+    <p>{{ partIdent.player.summonerName }}</p>
+  {% endfor %}
+{% endblock %}

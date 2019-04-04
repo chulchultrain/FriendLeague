@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<html lang="en">
+<head>
+  <title> {{ account.name }} </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+  <div class='container-fluid'>
+    <div class='row'>
+    <h1> {{ account.name }} </h1>
+    <p> refresh timestamp {{ account.refresh }} </p>
+    <p> {{ recent_5 }} </p>
+    {% for m in recent_solo %}
+      {% block match_content %}
+        <p> Template match content </p>
+      {% endblock %}
+    {% endfor %}
+    </div>
+  </div>
+</body>
+
+</html>

@@ -1,16 +1,18 @@
-<!DOCTYPE html>
-<html>
+{% extends 'analytics/account_base.html' %}
 
-<head>
-    <title> {{ account.name }} </title>
-</head>
+{% block inner_block %}
+  <p> testing inner block </p>
+{% endblock %}
 
-<body>
-    <h1> {{ account.account_id }} </h1>
-    <h1> {{ account.name }} </h1>
-    <p> Flex matches {{ account.flex_match_list|length }} {{ account.flex_match_list }} </p>
-    <p> Solo matches {{ account.solo_match_list|length }} {{ account.solo_match_list }} </p>
-    <p> refresh timestamp {{ account.refresh }} </p>
-</body>
-
-</html>
+{% block match_content %}
+  <h3> MATCH </h3>
+  {% for team in m %}
+    <h3>Team: </h3>
+    {% for p in team %}
+      <h4> {{ p.CHAMP }} </h4>
+      <p> CS:{{ p.CS }} K/D/A:{{ p.K }}/{{ p.D }}/{{p.A}} </p>
+      <p> Objective Damage: {{ p.O_DMG }} Champion Damage: {{ p.C_DMG }} </p>
+      <p> Wards Placed/Killed: {{ p.W_PLACED }}/{{ p.W_KILLED }} </p>
+    {% endfor %}
+  {% endfor %}
+{% endblock %}

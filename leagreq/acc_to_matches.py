@@ -1,9 +1,14 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'FriendLeague.settings'
 import leagreq.league_curl as league_curl
-import league_conf
-import pickle
-import subprocess
 import utils.league_util as league_util
-import utils.filemap as filemap
+import datetime
+import django
+from django.conf import settings
+if __name__ == '__main__':
+    django.setup()
+from django.db import models
+from analytics.models import Account
 
 #   Will map accounts to the list of match data.
 #
@@ -16,11 +21,11 @@ import utils.filemap as filemap
 # calls the Riot API to get a list of all the new matches that an
 # account has played after the timestamp associated with that account id
 # inside our acc_refresh_timestamp map
-def request_remaining_games(id,cursor,beginTime=0):
+def request_remaining_games(id,beginTime=0):
     cur_match = 0
     cur_season = 11
     param_map = {'beginTime':beginTime,'beginIndex':cur_match}
-    param_map['seasonId'] = 11
+    param_map['seasonId'] = 11 #TODO: put in leagueconf
     acc_match_data = league_curl.request('match_list',id,param_map)
     matches = []
     while(acc_match_data is not None and cur_match  < acc_match_data['totalGames']):
@@ -35,40 +40,39 @@ def request_remaining_games(id,cursor,beginTime=0):
 # low level function
 # updates both the match_list for an id and the timestamp for when the last
 # set of games was pulled
-def refresh_matches(id,cursor):
-
+def refresh_matches(id):
     res_match_data = []
-    last_timestamp = get_refresh_timestamp(id,cursor)
-    new_matches = request_remaining_games(id,cursor,last_timestamp)
+    last_timestamp = get_refresh_timestamp(id)
+    new_matches = request_remaining_games(id,last_timestamp)
     #try to secure write lock on the id. try to atomic commit
-    set_refresh_timestamp(id,cursor)
-    insert_matches(id,cursor,new_matches)
-    #unloc
+    set_refresh_timestamp(id)
+    insert_matches(id,new_matches)
+    #unlock
     if new_matches is None:
         raise RuntimeError("Couldn't retrieve match data for the account id " + str(id))
 
     return new_matches
 
 
-def get_refresh_timestamp(id,cursor):
-    cursor.execute('select refresh from analytics_account where account_id = %s',[id])
-    refresh = 0
-    refresh = cursor.fetchone()
-    refresh = refresh[0]
-    refresh = league_util.dt_to_riot_timestamp(refresh)
-    print(refresh)
+def get_refresh_timestamp(account_id):
+    try:
+        acc = Account.objects.get(account_id = account_id)
+        refresh = acc.refresh
+        refresh = league_util.dt_to_riot_timestamp(refresh)
+    except Account.DoesNotExist as e:
+        refresh = 0
     return refresh
 
-def set_refresh_timestamp(id,cursor):
+def set_refresh_timestamp(account_id):
     #insert_if_DNE(id,cursor)
-    cursor.execute('update analytics_account set refresh = now() where account_id = %s',[id])
+    try:
+        acc = Account.objects.get(account_id = account_id)
+        acc.refresh = datetime.datetime.now()
+        acc.save()
+    except Account.DoesNotExist as e:
+        print(e)
 
-# matches_from_id function
-# Top level function
-# returns the list of match ids associated with an account id
-# takes a refresh_flag to indicate whether we want to call the Riot API to get more matches
-
-def insert_matches(id,cursor,match_gen_list):
+def insert_matches(account_id,match_gen_list):
     solo_matches = []
     flex_matches = []
     for m in match_gen_list:
@@ -76,31 +80,27 @@ def insert_matches(id,cursor,match_gen_list):
             solo_matches.append(m['gameId'])
         elif is_flex_match(m):
             flex_matches.append(m['gameId'])
+    try:
+        acc = Account.objects.get(account_id = account_id)
+        acc.solo_match_list += solo_matches
+        acc.flex_match_list += flex_matches
+        acc.save()
+    except Account.DoesNotExist as e:
+        print(e)
 
-    stmt = 'update analytics_account set {0}=array_cat({0},%s::bigint[]) where account_id = %s'
-    solo_update = stmt.format('solo_match_list')
-    flex_update = stmt.format('flex_match_list')
-    print(solo_update)
-    cursor.execute(solo_update,[solo_matches,id])
-    cursor.execute(flex_update,[flex_matches,id])
-    cnx = cursor.connection
-    cnx.commit()
-
-
-
-def get_existing_matches(id,cursor=None,queue=None):
-    stmt = 'select {0}_match_list from analytics_account where account_id = %s'
-    params = [id]
-    if queue is not None:
-        retrieve = stmt.format(queue)
-        cursor.execute(retrieve,[id])
-    elif queue is None:
-        get_existing_matches(id,cursor,'solo') + get_existing_matches(id,cursor,'flex')
-    m_l = []
-    for c in cursor:
-        m_l += c[0]
-    return m_l
-
+def get_existing_matches(account_id,queue=None):
+    res = []
+    try:
+        acc = Account.objects.get(account_id = account_id)
+        if queue is 'solo':
+            res += acc.solo_match_list
+        elif queue is 'flex':
+            res += acc.flex_match_list
+        elif queue is None:
+            res += acc.solo_match_list + acc.flex_match_list
+    except Account.DoesNotExist as e:
+        print(e)
+    return res
 
 
 # is a solo q match predicate : takes match general data strcture
@@ -111,10 +111,10 @@ def is_solo_match(match):
 def is_flex_match(match):
     return match['queue'] == 440
 
-def all_matches(id,refresh_flag=False,cursor=None):
+def all_matches(id,refresh_flag=False):
     if(refresh_flag):
-        refresh_matches(id,cursor)
-    res = get_existing_matches(id,cursor)
+        refresh_matches(id)
+    res = get_existing_matches(id)
     return res
 
 # solo_q_matches function
@@ -122,10 +122,10 @@ def all_matches(id,refresh_flag=False,cursor=None):
 # gets all solo queue matches for a given id
 # by filtering on all the matches for the solo queue type
 # and takes a refresh flag to indicate whether to call Riot API for more matches
-def solo_q_matches(id, refresh_flag = False,cursor=None):
+def solo_q_matches(id, refresh_flag = False):
     if(refresh_flag):
-        refresh_matches(id,cursor)
-    res = get_existing_matches(id,cursor,queue='solo')
+        refresh_matches(id)
+    res = get_existing_matches(id,queue='solo')
     return res
 
 
@@ -134,10 +134,10 @@ def solo_q_matches(id, refresh_flag = False,cursor=None):
 # gets all flex queue matches for a given id
 # by filtering on all the matches for the flex queue type
 # and takes a refresh flag to indicate whether to call Riot API for more matches
-def flex_q_matches(name,refresh_flag = False,cursor=None):
+def flex_q_matches(name,refresh_flag = False):
     if(refresh_flag):
-        refresh_matches(id,cursor)
-    res = get_existing_matches(id,cursor,queue='flex')
+        refresh_matches(id)
+    res = get_existing_matches(id,queue='flex')
     return res
 
 #TODO: A SOLO Q COUNTERPART TO get_flex_match_list_for_group
@@ -149,11 +149,11 @@ def flex_q_matches(name,refresh_flag = False,cursor=None):
 # takes a refresh flag to indicate whether to call Riot API for more matches
 # acc_id_li : List[Int/Long]
 # refresh_flag : Boolean
-def get_flex_match_list_for_group(acc_name_li,refresh_flag = False,cursor=None):
+def get_flex_match_list_for_group(acc_name_li,refresh_flag = False):
     init_filter = []
     id_set = set()
     for a in acc_name_li:
-        m_li = flex_q_matches(a,refresh_flag,cursor)
+        m_li = flex_q_matches(a,refresh_flag)
         for m in m_li:
             if m not in id_set:
                 init_filter.append(m)
@@ -179,9 +179,7 @@ def cleanup():
 def testing():
     #print(new_matches_from_id(44649467))
     #print(matches_from_id(44649467))
-    with league_util.conn_postgre() as cnx:
-        with cnx.cursor() as cursor:
-            print(solo_q_matches('bvw_nI2IATn8zNJosGoqNacUFUURmWRjMy-mrbWksN75gw',refresh_flag=True,cursor=cursor))
+    print(solo_q_matches('bvw_nI2IATn8zNJosGoqNacUFUURmWRjMy-mrbWksN75gw',refresh_flag=True))
     print("NO ASSERTS FOR THSI MODULE")
 setup()
 if __name__ == "__main__":

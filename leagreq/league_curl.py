@@ -2,16 +2,12 @@ import requests
 import league_conf
 import time
 
-
-
-
 # request_url_map_populate function
 # Creates a map for sub URLs for queries that may be needed from the Riot API.
 # Ex: to get the summoner data from Riot API, you have to add the
 # suburl of /lol/summoner/v3/summoners/by-name
 # This function is where we put all the necessary queries to the Riot API we
 # may need.
-
 def request_url_map_populate():
     request_url_map = {}
     request_url_map['match_list'] = '/lol/match/v4/matchlists/by-account'
@@ -128,8 +124,6 @@ def execute_request(req_str):
 def request(r_type,r_value=None,header_params=None):
     req_str = gen_request(r_type,r_value,header_params)
     response_json = execute_request(req_str)
-
-
     return response_json
 
 
