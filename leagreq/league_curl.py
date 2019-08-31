@@ -90,6 +90,9 @@ def check_json(json_obj):
     if 'status' in json_obj:
         raise RuntimeError(str(json_obj))
 
+def valid_response(response):
+    return response.status_code == 200
+
 
 #TODO: What should happen in the event of a 4XX error
 # request function
@@ -105,6 +108,7 @@ def execute_request(req_str):
         time.sleep(1.4)
         response = requests.get(req_str)
         response_json = response.json()
+        print(response.headers)
         try:
             check_json(response_json)
             counter = 2
@@ -114,6 +118,10 @@ def execute_request(req_str):
         counter += 1
     return response_json
 
+def ex_req(req_str):
+    response = requests.get(req_str)
+    if valid_response(response):
+        # proceed as normal 
 
 # request
 # Top Level function

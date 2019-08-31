@@ -23,7 +23,6 @@ def data_refresh():
         champ_data_str = json.dumps(data[x])
         o = Champion(champ_id = key,name=name,champ_data=data[x])
         o.save()
-    cnx.commit()
 
 # id_from_champion function
 # Top Level Function
@@ -33,7 +32,7 @@ def id_from_champion(name):
     try:
         champ = Champion.objects.get(name=name)
         champ_id = champ.champ_id
-    except DoesNotExist as e:
+    except Champion.DoesNotExist as e:
         print(e)
         champ_id = None
     return champ_id
@@ -75,5 +74,5 @@ def testing():
     assert(data_from_id(99)['name'] == 'Lux')
 
 if __name__ == '__main__':
-    #data_refresh()
+    data_refresh()
     testing()
