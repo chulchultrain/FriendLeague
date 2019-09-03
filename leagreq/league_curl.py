@@ -82,18 +82,55 @@ def gen_request(r_type,r_value=None,header_params=None):
     res += add_header_query(h_p_copy)
     return res
 
-# check_json
-# checks to see if something was actually returned
-# as of 20170626, its not a very thorough check. perhaps should be updated.
-
-def check_json(json_obj):
-    if 'status' in json_obj:
-        raise RuntimeError(str(json_obj))
 
 def valid_response(response):
     return response.status_code == 200
 
+def split_rates(text):
+    return text.split(',')
 
+def calculate_rate(rate_text):
+    r_data = rate_text.split(':')
+    r_count = r_data[0]
+    r_time = r_data[1]
+    return r_count,r_time
+
+def process_rates(text):
+    rate_text_li = split_rates
+    r_map = {}
+    for rate_text in rate_li:
+        r_count, r_time = calculate_rate(rate_text)
+        r_map[r_time] = r_count
+    return r_map
+
+def calculate_wait_response(rate_limits,rate_counts):
+    for r_time in rate_limits:
+        
+
+def process_app_rate(headers):
+    get_app_rate_limit
+    get_app_rate_count
+    X-App-Rate-Limit
+    X-App-Rate-Limit-Count
+    # check if the app-rate-limit is in the header
+    app_rate_limits = process_rates(headers['X-App-Rate-Limit'])
+    app_rate_counts = process_rates(headers['X-App-Rate-Limit-Count'])
+    calculate_wait_response(app_rate_limits,app_rate_counts)
+    pass
+
+def process_endpoint_rate(headers):
+    pass
+
+# Process response headers which give the rate limits and the current count
+#
+#
+#
+def process_response_headers(headers):
+    # Process the application rate limit
+    process_app_rate(headers)
+    get_endpoint_rate(headers)
+    # and also process the endpoint rate limit
+    pass
 #TODO: What should happen in the event of a 4XX error
 # request function
 #
@@ -104,24 +141,31 @@ def valid_response(response):
 def execute_request(req_str):
     counter = 0
     print(req_str)
+    response_json = None
     while counter < 2:
         time.sleep(1.4)
         response = requests.get(req_str)
-        response_json = response.json()
         print(response.headers)
-        try:
-            check_json(response_json)
+        if valid_response(response):
+            response_json = response.json()
             counter = 2
-        except RuntimeError as e:
-            print(e)
-            response_json = None
+        else:
+            print(response.text)
+        process_response_headers(response.headers) #TODO: IN FUTURE, BECAUSE ENDPOINT HAS DIF RATE LIMIT, MAKE IT HIT DIFFERENTLY FOR THAT ENDPOINT
         counter += 1
     return response_json
 
-def ex_req(req_str):
-    response = requests.get(req_str)
-    if valid_response(response):
-        # proceed as normal 
+
+# Build in rate limiting
+# Once we execute a request,
+# We look at the response headers to see if we went over the rate limit.
+# If we did, back off for some time in some way depending upon what the headers said
+#
+
+# def ex_req(req_str):
+#     response = requests.get(req_str)
+#     if valid_response(response):
+        # proceed as normal
 
 # request
 # Top Level function

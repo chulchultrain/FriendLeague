@@ -112,21 +112,19 @@ def inner_testing():
 
 def testing():
     #inner_testing()
-    with league_util.conn_postgre() as cnx:
-        with cnx.cursor() as cursor:
-            a_k = {}
-            a_k['chulchultrain'] = 'PhjloNxjxrIOTQ4trcehe8OGiU9ABj933DBGRnO4GBfqNw'
-            a_k['chulminyang'] = 'XfVmqID5O2tHwGU0wroo7AM2JGYXSnbouxR4np57zd1NQw'
-            a_k['crysteenah'] = 'bvw_nI2IATn8zNJosGoqNacUFUURmWRjMy-mrbWksN75gw'
-            a_k['blanket robber'] = 'Apa_1kMg9ckSifHjbmEqdivPV1ZE-PG0VBDsFblbnDfxCA'
-            a_k['starcalls coffee'] = 'JwdAIS2YHVF6vbxgHOIbgll7FMsfZIXyQv8k9hhmUl2JEw'
-            a_k['ilovememundo'] = 'jIMdQTRS3qiNR2EpHFnKQug9UTN-7N2xgj-UhrY6Cdj9HA'
-            a_k['sbaneling'] = 'E6QXRg4OdwKEWvebh8NjjLDTixMf5ncFKhc380Xud9TN2D0'
-            a_k['pebblekid'] = 'ag0vyR9w6id7cJhGTkJpu4aEGkK_V5-gZW1QFYcltcVzpRs'
-            for x in a_k:
-                #assert(a_k[x] == account_id_from_name(x,cursor))
-                print(account_id_from_name(x,cursor))
-            print(account_id_from_name('summontheez',cursor))
+    a_k = {}
+    a_k['chulchultrain'] = 'PhjloNxjxrIOTQ4trcehe8OGiU9ABj933DBGRnO4GBfqNw'
+    a_k['chulminyang'] = 'XfVmqID5O2tHwGU0wroo7AM2JGYXSnbouxR4np57zd1NQw'
+    a_k['crysteenah'] = 'bvw_nI2IATn8zNJosGoqNacUFUURmWRjMy-mrbWksN75gw'
+    a_k['blanket robber'] = 'Apa_1kMg9ckSifHjbmEqdivPV1ZE-PG0VBDsFblbnDfxCA'
+    a_k['starcalls coffee'] = 'JwdAIS2YHVF6vbxgHOIbgll7FMsfZIXyQv8k9hhmUl2JEw'
+    a_k['ilovememundo'] = 'jIMdQTRS3qiNR2EpHFnKQug9UTN-7N2xgj-UhrY6Cdj9HA'
+    a_k['sbaneling'] = 'E6QXRg4OdwKEWvebh8NjjLDTixMf5ncFKhc380Xud9TN2D0'
+    a_k['pebblekid'] = 'ag0vyR9w6id7cJhGTkJpu4aEGkK_V5-gZW1QFYcltcVzpRs'
+    a_k['summontheez'] = 'OAVsUq1OAnV3jHxU9Zy_qAMEeQGbo678Pd3DrxjR5fJsFg'
+    for x in a_k:
+        #assert(a_k[x] == account_id_from_name(x,cursor))
+        print(account_id_from_name(x))
 
 
 setup()
