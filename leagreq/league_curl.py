@@ -91,44 +91,53 @@ def split_rates(text):
 
 def calculate_rate(rate_text):
     r_data = rate_text.split(':')
-    r_count = r_data[0]
-    r_time = r_data[1]
+    r_count = int(r_data[0])
+    r_time = int(r_data[1])
     return r_count,r_time
 
 def process_rates(text):
-    rate_text_li = split_rates
+    rate_text_li = split_rates(text)
     r_map = {}
-    for rate_text in rate_li:
+    for rate_text in rate_text_li:
         r_count, r_time = calculate_rate(rate_text)
         r_map[r_time] = r_count
     return r_map
 
 def calculate_wait_response(rate_limits,rate_counts):
+    max_wait = 0
     for r_time in rate_limits:
-        
+        if r_time in rate_counts:
+            cur_count = rate_counts[r_time]
+            cur_limit = rate_limits[r_time]
+            if(cur_count >= cur_limit):
+                max_wait = max(max_wait,r_time)
+    print("max wait became " + str(max_wait))
+    return max_wait
 
 def process_app_rate(headers):
-    get_app_rate_limit
-    get_app_rate_count
-    X-App-Rate-Limit
-    X-App-Rate-Limit-Count
+    # get_app_rate_limit
+    # get_app_rate_count
+    # X-App-Rate-Limit
+    # X-App-Rate-Limit-Count
     # check if the app-rate-limit is in the header
     app_rate_limits = process_rates(headers['X-App-Rate-Limit'])
     app_rate_counts = process_rates(headers['X-App-Rate-Limit-Count'])
-    calculate_wait_response(app_rate_limits,app_rate_counts)
+    max_wait = calculate_wait_response(app_rate_limits,app_rate_counts)
+    return max_wait
     pass
 
 def process_endpoint_rate(headers):
     pass
 
 # Process response headers which give the rate limits and the current count
-#
+# and does the sleep here
 #
 #
 def process_response_headers(headers):
     # Process the application rate limit
-    process_app_rate(headers)
-    get_endpoint_rate(headers)
+    wait_time = process_app_rate(headers)
+    time.sleep(wait_time)
+    #get_endpoint_rate(headers)
     # and also process the endpoint rate limit
     pass
 #TODO: What should happen in the event of a 4XX error
@@ -143,7 +152,6 @@ def execute_request(req_str):
     print(req_str)
     response_json = None
     while counter < 2:
-        time.sleep(1.4)
         response = requests.get(req_str)
         print(response.headers)
         if valid_response(response):
