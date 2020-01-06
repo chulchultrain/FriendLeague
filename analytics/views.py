@@ -9,8 +9,10 @@ def index(request):
 def account(request,name):
     response = "Welcome to account page for %s" % name
     acc = Account.objects.get(name = name)
+    recent_matches = acc.flex_match_list[:-5] #TODO: not just flex but solo also
     context = {
-        'account' : acc
+        'account' : acc , 
+        'recent_5': recent_matches
     }
     return render(request, 'analytics/account.html',context)
 
