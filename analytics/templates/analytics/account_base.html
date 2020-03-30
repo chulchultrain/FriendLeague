@@ -18,11 +18,12 @@
     <p> {{ account.account_id }} </p>
     <p> refresh timestamp {{ account.refresh }} </p>
     <p> {{ recent_5 }} </p>
-    {% for m in recent_solo %}
-      {% block match_content %}
-        <p> Template match content </p>
-      {% endblock %}
-    {% endfor %}
+    {% block inner_block %}
+      <p> Template inner block </p>
+    {% endblock %}
+    {% block match_content %}
+      <p> Template match content </p>
+    {% endblock %}
     </div>
   </div>
 </body>

@@ -1,6 +1,7 @@
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'FriendLeague.settings'
 import leagreq.league_curl as league_curl
+import league_conf
 import utils.league_util as league_util
 import datetime
 import django
@@ -16,6 +17,7 @@ from analytics.models import Account
 #   We keep track of when the last time the matchdata was refreshed for each account we have on hand.
 #
 
+season_start = datetime.datetime(2020,1,12,0,0,0,tzinfo=datetime.timezone.utc)
 
 # request_remaining_games function
 # calls the Riot API to get a list of all the new matches that an
@@ -23,9 +25,8 @@ from analytics.models import Account
 # inside our acc_refresh_timestamp map
 def request_remaining_games(id,beginTime=0):
     cur_match = 0
-    cur_season = 11
     param_map = {'beginTime':beginTime,'beginIndex':cur_match}
-    param_map['seasonId'] = 11 #TODO: put in leagueconf
+    # param_map['seasonId'] = 11 #TODO: put in leagueconf
     acc_match_data = league_curl.request('match_list',id,param_map)
     matches = []
     while(acc_match_data is not None and cur_match  < acc_match_data['totalGames']):
@@ -33,7 +34,6 @@ def request_remaining_games(id,beginTime=0):
         cur_match += 100
         param_map['beginIndex'] = cur_match
         acc_match_data = league_curl.request('match_list',id,param_map)
-    print(len(matches))
     return matches
 
 # matches_refresh function
@@ -55,19 +55,21 @@ def refresh_matches(id):
 
 
 def get_refresh_timestamp(account_id):
+    refresh = 0
     try:
         acc = Account.objects.get(account_id = account_id)
         refresh = acc.refresh
-        refresh = league_util.dt_to_riot_timestamp(refresh)
     except Account.DoesNotExist as e:
         refresh = 0
+    refresh = max(refresh,season_start)
+    refresh = league_util.dt_to_riot_timestamp(refresh)
     return refresh
 
 def set_refresh_timestamp(account_id):
     #insert_if_DNE(id,cursor)
     try:
         acc = Account.objects.get(account_id = account_id)
-        acc.refresh = datetime.datetime.now()
+        acc.refresh = datetime.datetime.now(tz=datetime.timezone.utc)
         acc.save()
     except Account.DoesNotExist as e:
         print(e)

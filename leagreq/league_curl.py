@@ -185,18 +185,18 @@ def execute_request(req):
     req_str = req['req_str']
     r_type = req['r_type']
     counter = 0
-    print(req_str)
+    # print(req_str)
     response_json = None
     while counter < 2:
         proper_wait(req)
         response = requests.get(req_str)
-        print(response.headers)
+        # print(response.headers)
         if valid_response(response):
             response_json = response.json()
             counter = 2
         else:
             print(response.text)
-            # print(response.headers)
+            print(response.headers)
         process_response_headers(response.headers) #TODO: IN FUTURE, BECAUSE ENDPOINT HAS DIF RATE LIMIT, MAKE IT HIT DIFFERENTLY FOR THAT ENDPOINT
         counter += 1
     return response_json

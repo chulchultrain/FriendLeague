@@ -39,7 +39,7 @@ def exists_already(account_id,cursor=None):
 
 def insert_new_account(account_id,name,cursor):
     big_int_array = 'array[]::bigint[]'
-    to_timestamp_0 = 'to_timestamp(0)'
+    to_timestamp_0 = "timestamp with time zone '2000-01-01 00:00:00-06'"
     param_li = [account_id,name]
     try:
         acc = Account(account_id=account_id,name=name)

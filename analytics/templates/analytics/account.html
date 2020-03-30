@@ -5,14 +5,18 @@
 {% endblock %}
 
 {% block match_content %}
+  {% for m in match_summary_list %}
   <h3> MATCH </h3>
-  {% for team in m %}
-    <h3>Team: </h3>
-    {% for p in team %}
-      <h4> {{ p.CHAMP }} </h4>
-      <p> CS:{{ p.CS }} K/D/A:{{ p.K }}/{{ p.D }}/{{p.A}} </p>
-      <p> Objective Damage: {{ p.O_DMG }} Champion Damage: {{ p.C_DMG }} </p>
-      <p> Wards Placed/Killed: {{ p.W_PLACED }}/{{ p.W_KILLED }} </p>
+    {% for t,t_d in m.items %}
+      <h4> Team 1 </h4>
+      {% for p,pd in t_d.items %}
+        <h6> {{ pd.name }} <h6>
+        <p> CS: {{ pd.cs }} </p>
+        <p> K/D/A: {{ pd.kills }}/{{ pd.deaths }}/{{ pd.assists }} </p>
+        <p> Champion Damage: {{ pd.damage }} </p>
+        <p> Wards Placed/Wards Killed/Vision Wards Bought: {{ pd.wards_placed }}/{{ pd.wards_killed }}/{{ pd.vision_wards }} </p> 
+
+      {% endfor %}
     {% endfor %}
   {% endfor %}
 {% endblock %}
