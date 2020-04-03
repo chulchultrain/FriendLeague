@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.template import loader
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from .models import Account, Champion, Match_Detail, Match_Summary
 from .view_helpers import filter_match
 def index(request):
@@ -11,7 +11,7 @@ def account(request,name):
     # the proper values without template overload.
 
     response = "Welcome to account page for %s" % name
-    acc = Account.objects.get(name = name)
+    acc = get_object_or_404(Account,name = name)
     recent_matches = acc.flex_match_list[-5:] #TODO: not just flex but solo also
     match_summary_list = [ m.match_summary for m in Match_Summary.objects.filter(pk__in=recent_matches)]
 

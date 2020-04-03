@@ -24,8 +24,8 @@ def refresh_person(acc_id):
     # for all matches not in db, put them in
     match_list = acc_to_matches.refresh_matches(acc_id)
     match_id_list = [m['gameId'] for m in match_list]
-    for m in match_id_list:
-        match.match_data_from_id(m)
+    # for m in match_id_list:
+    #     match.match_data_from_id(m)
 def parse_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('-n',"--name",help = "the name of the summoner")

@@ -84,8 +84,8 @@ def insert_matches(account_id,match_gen_list):
             flex_matches.append(m['gameId'])
     try:
         acc = Account.objects.get(account_id = account_id)
-        acc.solo_match_list += solo_matches
-        acc.flex_match_list += flex_matches
+        acc.solo_match_list = solo_matches + acc.solo_match_list
+        acc.flex_match_list = flex_matches + acc.flex_match_list
         acc.save()
     except Account.DoesNotExist as e:
         print(e)

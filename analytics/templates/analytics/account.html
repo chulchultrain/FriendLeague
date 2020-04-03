@@ -1,22 +1,24 @@
 {% extends 'analytics/account_base.html' %}
 
-{% block inner_block %}
-  <p> testing inner block </p>
-{% endblock %}
+
 
 {% block match_content %}
-  {% for m in match_summary_list %}
-  <h3> MATCH </h3>
-    {% for t,t_d in m.items %}
-      <h4> Team 1 </h4>
-      {% for p,pd in t_d.items %}
-        <h6> {{ pd.name }} <h6>
-        <p> CS: {{ pd.cs }} </p>
-        <p> K/D/A: {{ pd.kills }}/{{ pd.deaths }}/{{ pd.assists }} </p>
-        <p> Champion Damage: {{ pd.damage }} </p>
-        <p> Wards Placed/Wards Killed/Vision Wards Bought: {{ pd.wards_placed }}/{{ pd.wards_killed }}/{{ pd.vision_wards }} </p> 
+{% for m in match_summary_list %}
+  <div class='row'>
+  {% for t,t_d in m.items %}
 
-      {% endfor %}
-    {% endfor %}
+    {% for p,pd in t_d.items %}
+      <div class='col-1'>
+      <h6><a href="{% url 'account' pd.name %}">  {{ pd.name }} </a><h6>
+      <p> CS: {{ pd.cs }} </p>
+      <p> K/D/A: {{ pd.kills }}/{{ pd.deaths }}/{{ pd.assists }} </p>
+      <p> Champion Damage: {{ pd.damage }} </p>
+      <p> Wards Placed: {{ pd.wards_placed }}</p>
+      <p>Wards Killed: {{ pd.wards_killed }}</p>
+      <p>Vision Wards Bought: {{ pd.vision_wards }}</p>
+      </div>
   {% endfor %}
+{% endfor %}
+  </div>
+{% endfor %}
 {% endblock %}
