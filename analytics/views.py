@@ -13,12 +13,16 @@ def account(request,name):
     response = "Welcome to account page for %s" % name
     acc = get_object_or_404(Account,name = name)
     recent_matches = acc.flex_match_list[-5:] #TODO: not just flex but solo also
-    match_summary_list = [ m.match_summary for m in Match_Summary.objects.filter(pk__in=recent_matches)]
+    match_summary_map = {}
+    match_summary_list = Match_Summary.objects.filter(pk__in=recent_matches)
+    for m in match_summary_list:
+        match_summary_map[m.match_id] = m.match_summary
+
 
     context = {
         'account' : acc ,
         'recent_5': recent_matches,
-        'match_summary_list': match_summary_list
+        'match_summary_list': match_summary_map
     }
     return render(request, 'analytics/account.html',context)
 

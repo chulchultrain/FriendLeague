@@ -29,10 +29,6 @@ class Aggregate_Account(models.Model):
     flex_champion_stats = JSONField()
     total_champion_stats = JSONField()
 
-class Aggregate_Team(models.Model):
-    account_id_1 = models.ForeignKey(Account,primary_key=True,on_delete=models.CASCADE)
-    account_id_2 = models.ForeignKey(Account,primary_key=True,on_delete=models.CASCADE)
-    account_id_3 = models.ForeignKey(Account,primary_key=True,on_delete=models.CASCADE)
-    account_id_4 = models.ForeignKey(Account,primary_key=True,on_delete=models.CASCADE)
-    account_id_5 = models.ForeignKey(Account,primary_key=True,on_delete=models.CASCADE)
-    stats = JSONField()
+# class Aggregate_Team(models.Model):
+#     account_ids = models.CharField(Account,primary_key=True,on_delete=models.CASCADE,)
+#     stats = JSONField()

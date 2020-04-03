@@ -3,22 +3,41 @@
 
 
 {% block match_content %}
-{% for m in match_summary_list %}
-  <div class='row'>
-  {% for t,t_d in m.items %}
 
+
+{% for mid,m in match_summary_list.items %}
+<button class="btn btn-primary" data-toggle="collapse" data-target="#match{{ mid }}" aria-expanded="false" aria-controls="match{{ mid }}">
+  Expand Match
+  </button>
+
+<table class='table table-striped collapse' id="match{{ mid }}">
+<thead class="thead-dark">
+<tr>
+  <th scope="col">Name</th>
+  <th scope="col">CS</th>
+  <th scope="col">KDA</th>
+  <th scope="col">Damage</th>
+  <th scope="col">Wards</th>
+</tr>
+</thead>
+  <tbody>
+
+  {% for t,t_d in m.items %}
     {% for p,pd in t_d.items %}
-      <div class='col-1'>
-      <h6><a href="{% url 'account' pd.name %}">  {{ pd.name }} </a><h6>
-      <p> CS: {{ pd.cs }} </p>
-      <p> K/D/A: {{ pd.kills }}/{{ pd.deaths }}/{{ pd.assists }} </p>
-      <p> Champion Damage: {{ pd.damage }} </p>
-      <p> Wards Placed: {{ pd.wards_placed }}</p>
-      <p>Wards Killed: {{ pd.wards_killed }}</p>
-      <p>Vision Wards Bought: {{ pd.vision_wards }}</p>
-      </div>
+    <tr>
+      <td>
+        <a href="{% url 'account' pd.name %}">  {{ pd.name }} </a>
+      </td>
+      <td>{{ pd.cs }}</td>
+      <td>{{ pd.kills }}/{{ pd.deaths }}/{{ pd.assists }}</td>
+      <td>{{ pd.damage }}</td>
+      <td>{{ pd.wards_placed }}/{{ pd.wards_killed }}/{{ pd.vision_wards }}</td>
+      </tr>
   {% endfor %}
 {% endfor %}
-  </div>
+
+  </tbody>
+</table>
 {% endfor %}
+
 {% endblock %}
