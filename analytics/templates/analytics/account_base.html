@@ -29,16 +29,15 @@
       </div>
     </div>
     <div class='row'>
-      <div class='col-sm'>
+      <div class="col">
         {% block match_content %}
           <p> Template match content </p>
         {% endblock %}
       </div>
-      <div class="col-sm">
-        One of three columns
-      </div>
-      <div class="col-sm">
-        One of three columns
+      <div class="col">
+        {% block account_champion_content %}
+          <p> Template champion content
+        {% endblock %}
       </div>
     </div>
 

@@ -14,6 +14,7 @@
 <thead class="thead-dark">
 <tr>
   <th scope="col">Name</th>
+  <th scope="col">Champion</th>
   <th scope="col">CS</th>
   <th scope="col">KDA</th>
   <th scope="col">Damage</th>
@@ -28,6 +29,7 @@
       <td>
         <a href="{% url 'account' pd.name %}">  {{ pd.name }} </a>
       </td>
+      <td>{{ pd.champion_name }}</td>
       <td>{{ pd.cs }}</td>
       <td>{{ pd.kills }}/{{ pd.deaths }}/{{ pd.assists }}</td>
       <td>{{ pd.damage }}</td>

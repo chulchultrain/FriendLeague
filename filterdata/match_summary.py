@@ -7,7 +7,7 @@ if __name__ == '__main__':
     django.setup()
 import leagreq.match as match
 from django.db import models
-from analytics.models import Match_Summary
+from analytics.models import Match_Summary, Champion
 
 
 def retrieve_match_data(match_id):
@@ -42,10 +42,18 @@ def match_summary_from_data(match_data):
     participants = match_data['participants']
     for participant in participants:
         pid = participant['participantId']
+        #TODO: get champion id and champion name and put into the stat obj so that we can display it on the site
+        champion_name = None
+        try:
+            champion_name = Champion.objects.get(pk=participant['championId']).name
+        except Champion.DoesNotExist as e:
+            print(e)
+            champion_name = None
         stats = participant['stats']
         team_id = participant['teamId']
         stat_obj = {}
         stat_obj['name'] = player_map[pid]
+        stat_obj['champion_name'] = champion_name
         stat_obj['cs'] = stats['totalMinionsKilled'] + stats['neutralMinionsKilled']
         stat_obj['wards_placed'] = stats['wardsPlaced']
         stat_obj['wards_killed'] = stats['wardsKilled']
