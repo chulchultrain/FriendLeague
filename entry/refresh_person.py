@@ -15,17 +15,25 @@ if __name__ == '__main__':
 import leagreq.name_to_acc as name_to_acc
 import leagreq.acc_to_matches as acc_to_matches
 import leagreq.match as match
+
 from django.conf import settings
 
 from django.db import models
+from analytics.models import Account
+import filterdata.match_summary as match_summary
+
+def refresh_all():
+    acc = Account.objects.all()
+    for x in acc:
+        refresh_person(x.account_id)
 
 def refresh_person(acc_id):
     # refresh match list
     # for all matches not in db, put them in
     match_list = acc_to_matches.refresh_matches(acc_id)
     match_id_list = [m['gameId'] for m in match_list]
-    # for m in match_id_list:
-    #     match.match_data_from_id(m)
+    for m in match_id_list:
+        match_summary.match_summary_from_id(m)
 def parse_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('-n',"--name",help = "the name of the summoner")

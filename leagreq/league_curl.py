@@ -48,7 +48,11 @@ def add_header_query(hq_map):
     res = '?'
     headers = []
     for x in hq_map:
-        headers.append(str(x) + '=' + str(hq_map[x]))
+        if type(hq_map[x]) is list:
+            for y in hq_map[x]:
+                headers.append(str(x) + '=' + str(y))
+        else:
+            headers.append(str(x) + '=' + str(hq_map[x]))
     header_statement = '&'.join(headers)
     res += header_statement
     return res
@@ -195,6 +199,7 @@ def execute_request(req):
             response_json = response.json()
             counter = 2
         else:
+            print(req_str)
             print(response.text)
             print(response.headers)
         process_response_headers(response.headers) #TODO: IN FUTURE, BECAUSE ENDPOINT HAS DIF RATE LIMIT, MAKE IT HIT DIFFERENTLY FOR THAT ENDPOINT

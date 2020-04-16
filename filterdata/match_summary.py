@@ -35,11 +35,16 @@ def match_summary_from_data(match_data):
         player_map[pid] = name
     #main data structure: map team ids to a list of players
     team_li = match_data['teams']
-
+    team_win = {}
     for team_stats_dto in team_li:
         team_id = team_stats_dto['teamId']
-        match_summary[team_id] = {}
+        win_id = team_stats_dto['win']
+        team_win[team_id] = win_id
+        match_summary[win_id] = { }
+
     participants = match_data['participants']
+
+
     for participant in participants:
         pid = participant['participantId']
         #TODO: get champion id and champion name and put into the stat obj so that we can display it on the site
@@ -51,6 +56,7 @@ def match_summary_from_data(match_data):
             champion_name = None
         stats = participant['stats']
         team_id = participant['teamId']
+        win_id = team_win[team_id]
         stat_obj = {}
         stat_obj['name'] = player_map[pid]
         stat_obj['champion_name'] = champion_name
@@ -62,8 +68,8 @@ def match_summary_from_data(match_data):
         stat_obj['deaths'] = stats['deaths']
         stat_obj['damage'] = stats['totalDamageDealtToChampions']
         stat_obj['assists'] = stats['assists']
-        if pid not in match_summary[team_id]:
-            match_summary[team_id][pid] = stat_obj
+        if pid not in match_summary[win_id]:
+            match_summary[win_id][pid] = stat_obj
     #for each player in the list of players, map player to pertinent statistics data
     return match_summary
 

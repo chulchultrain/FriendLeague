@@ -25,12 +25,15 @@ season_start = datetime.datetime(2020,1,12,0,0,0,tzinfo=datetime.timezone.utc)
 # inside our acc_refresh_timestamp map
 def request_remaining_games(id,beginTime=0):
     cur_match = 0
-    param_map = {'beginTime':beginTime,'beginIndex':cur_match}
+    param_map = {'beginTime':beginTime,'beginIndex':cur_match, 'queue':[420,440]}
     # param_map['seasonId'] = 11 #TODO: put in leagueconf
     acc_match_data = league_curl.request('match_list',id,param_map)
     matches = []
     while(acc_match_data is not None and cur_match  < acc_match_data['totalGames']):
         matches += acc_match_data['matches']
+        for m in acc_match_data['matches']:
+            if m['queue'] != 420 and m['queue'] != 440:
+                print("FAILED GOT ANOTHER QUEUE")
         cur_match += 100
         param_map['beginIndex'] = cur_match
         acc_match_data = league_curl.request('match_list',id,param_map)
